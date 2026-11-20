@@ -1,0 +1,26 @@
+# Dependências e build
+node_modules
+dist
+dist-ssr
+
+# Variáveis de ambiente (nunca commitar valores reais)
+.env
+.env.*
+!.env.example
+*.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Editor / sistema
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+Thumbs.db
+*.sw?
+
+# Vercel
+.vercel

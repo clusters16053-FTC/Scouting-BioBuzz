@@ -1,0 +1,3 @@
+# Força quebra de linha LF em todo arquivo de texto, inclusive no Windows.
+# Sem isso, o Git no Windows pode converter para CRLF e o Prettier acusa erro.
+* text=auto eol=lf
