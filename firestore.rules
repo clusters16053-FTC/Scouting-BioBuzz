@@ -1,0 +1,126 @@
+rules_version = '2';
+
+// Regras de segurança do Firestore — Scouting BIOBUZZ.
+//
+// Ideia geral:
+//   1. O app faz login ANÔNIMO (cada aparelho ganha um uid).
+//   2. Para virar membro, o aparelho cria members/{uid} informando o código da equipe.
+//      A regra compara com config/access.teamCode, que nenhum navegador consegue ler.
+//   3. Só membros leem e escrevem relatórios.
+//
+// Explicação detalhada em docs/firebase.md.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Funções auxiliares ----------
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isMember() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/members/$(request.auth.uid));
+    }
+
+    function teamCode() {
+      return get(/databases/$(database)/documents/config/access).data.teamCode;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function isPositiveInt(value) {
+      return value is int && value > 0;
+    }
+
+    // Campos que todo relatório precisa ter.
+    // A validação completa de cada formulário entra na etapa 4.
+    function validReportBase() {
+      return incoming().schemaVersion is int
+        && isPositiveInt(incoming().teamNumber)
+        && incoming().createdBy == request.auth.uid
+        && incoming().syncedAt == request.time;
+    }
+
+    // Em edições, o autor original não pode ser trocado.
+    function keepsAuthor() {
+      return incoming().createdBy == resource.data.createdBy;
+    }
+
+    // ---------- Configuração secreta ----------
+    // config/access guarda o código da equipe. Só se edita pelo console do Firebase.
+    match /config/{docId} {
+      allow read, write: if false;
+    }
+
+    // ---------- Membros ----------
+    match /members/{uid} {
+      // Cada aparelho só enxerga o próprio cadastro; ninguém lista todos.
+      allow get: if signedIn() && request.auth.uid == uid;
+      allow list: if false;
+
+      allow create: if signedIn()
+        && request.auth.uid == uid
+        && incoming().keys().hasOnly(['name', 'code', 'joinedAt'])
+        && incoming().name is string
+        && incoming().name.size() >= 1
+        && incoming().name.size() <= 40
+        && incoming().code == teamCode()
+        && incoming().joinedAt == request.time;
+
+      allow update, delete: if false;
+    }
+
+    // ---------- Eventos e relatórios ----------
+    match /events/{eventId} {
+      allow read: if isMember();
+      allow create, update: if isMember()
+        && incoming().name is string
+        && incoming().name.size() <= 80;
+      allow delete: if false;
+
+      match /matchReports/{reportId} {
+        allow read: if isMember();
+        allow create: if isMember()
+          && validReportBase()
+          && isPositiveInt(incoming().matchNumber)
+          && incoming().alliance in ['red', 'blue']
+          && incoming().station in [1, 2];
+        allow update: if isMember()
+          && validReportBase()
+          && keepsAuthor()
+          && isPositiveInt(incoming().matchNumber)
+          && incoming().alliance in ['red', 'blue']
+          && incoming().station in [1, 2];
+        allow delete: if false;
+      }
+
+      match /pitReports/{reportId} {
+        allow read: if isMember();
+        allow create: if isMember() && validReportBase();
+        allow update: if isMember() && validReportBase() && keepsAuthor();
+        allow delete: if false;
+      }
+
+      // Fotos do pit ficam separadas para o dashboard não baixar todas de uma vez.
+      // O id do documento é o mesmo do pitReport correspondente.
+      match /pitPhotos/{reportId} {
+        allow read: if isMember();
+        allow create, update: if isMember()
+          && incoming().keys().hasOnly(['image', 'createdBy'])
+          && incoming().createdBy == request.auth.uid
+          && incoming().image is string
+          && incoming().image.size() <= 400000;
+        allow delete: if false;
+      }
+    }
+
+    // Qualquer outro caminho: bloqueado.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

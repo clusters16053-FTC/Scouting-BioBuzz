@@ -26,11 +26,17 @@ Pré-requisito: [Node.js](https://nodejs.org/) 22 ou superior.
 ```bash
 git clone https://github.com/clusters16053-FTC/scouting-biobuzz.git
 cd scouting-biobuzz
-npm install
-npm run dev
+npm ci
 ```
 
-Abra o endereço que aparecer no terminal (normalmente `http://localhost:5173`).
+Depois escolha um modo:
+
+- **Com o banco real:** copie `.env.example` para `.env.local`, preencha com os dados do Firebase e rode `npm run dev`.
+- **Com banco falso, local** (precisa do [Java 21+](https://adoptium.net/)): `npm run dev:emulators`. Código da equipe de teste: `clusters-dev`.
+
+Abra o endereço que aparecer no terminal (normalmente `http://localhost:5173`). Configuração completa do Firebase em [`docs/firebase.md`](docs/firebase.md).
+
+> **`npm ci` ou `npm install`?** Use `npm ci` para instalar: ele segue o `package-lock.json` à risca e não o altera. Use `npm install <pacote>` só quando for **adicionar** uma dependência.
 
 ## Scripts
 
@@ -50,17 +56,23 @@ scouting-biobuzz/
 ├── .github/              # Templates de issue/PR e CI (GitHub Actions)
 ├── docs/                 # Documentação do projeto
 ├── public/               # Arquivos servidos como estão (ícones)
+├── scripts/              # Scripts auxiliares (ex.: preparar o emulador)
 ├── src/
 │   ├── app/              # Casca do app: rotas, layout, navegação
 │   ├── components/       # Componentes reutilizáveis entre telas
 │   ├── config/           # Constantes do jogo (pontuação, limiares de RP)
 │   ├── features/         # Uma pasta por funcionalidade
+│   │   ├── access/       # Entrar na equipe (login + código)
 │   │   ├── home/
 │   │   ├── match-scouting/
 │   │   ├── pit-scouting/
 │   │   └── dashboard/
+│   ├── lib/              # Conexão com o Firebase e caminhos do banco
 │   ├── styles/           # CSS global e tokens de design
 │   └── main.jsx          # Ponto de entrada
+├── tests/                # Testes das regras de segurança
+├── firestore.rules       # Regras de segurança do banco
+├── firebase.json         # Configuração do Firebase CLI e emuladores
 ├── index.html
 ├── vercel.json           # Configuração de rotas na Vercel
 └── vite.config.js
@@ -72,16 +84,17 @@ scouting-biobuzz/
 
 - [Arquitetura](docs/arquitetura.md) — como as peças se conectam e o fluxo offline
 - [Modelo de dados](docs/modelo-de-dados.md) — campos coletados e estrutura no Firestore
+- [Firebase](docs/firebase.md) — criar o projeto, segurança e limites grátis
 - [Jogo BIOBUZZ](docs/jogo-biobuzz.md) — resumo das regras que importam pro scouting
 - [Como contribuir](CONTRIBUTING.md) — branches, commits e pull requests
 
 ## Roadmap
 
 - [x] **1. Definição** — campos coletados e modelo de dados
-- [ ] **2. Base** — projeto, organização do repositório e deploy _(em andamento)_
-- [ ] **3. Firebase** — projeto, banco e regras de segurança
+- [x] **2. Base** — projeto, organização do repositório e deploy
+- [x] **3. Firebase** — banco, regras de segurança e entrada com código da equipe
 - [ ] **4. Formulários** — scouting de partida e pit online
 - [ ] **5. Offline (PWA)** — fila de pendentes e indicador de sincronização
 - [ ] **6. Dashboard** — ranking, médias e comparação de equipes
 - [ ] **7. Teste de campo** — modo avião, vários aparelhos, conflitos
-- [ ] **8. Polimento** — usabilidade e acesso por código da equipe
+- [ ] **8. Polimento** — usabilidade e ajustes finais
