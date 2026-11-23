@@ -137,8 +137,8 @@ O scouter não anota erros: **erros = `totalShots − totalHits`** e **precisão
 |           | `teamName`                                                       | texto (até 60)                                                   |
 | Robô      | `drivetrain`                                                     | `"mecanum"` \| `"tank"` \| `"swerve"` \| `"other"` (obrigatório) |
 |           | `shooterShape`                                                   | `"c"` \| `"s"` \| `"other"` \| `"none"` (obrigatório)            |
-| FLOWER    | `flowerPlaces`                                                   | lista: `"nectar"`, `"pollen"` (pode ser vazia)                   |
-|           | `removesFromFlower`                                              | booleano — tira POLLEN ou NECTAR da FLOWER                       |
+| FLOWER    | `flowerPlaces`                                                   | "Pontua na FLOWER?" — lista: `"nectar"`, `"pollen"`; vazia = Não |
+|           | `removesFromFlower`                                              | "Tira da FLOWER?" — booleano                                     |
 | AUTO      | `autoNotes`                                                      | texto livre (até 500)                                            |
 | Final     | `strategy`                                                       | texto (até 500)                                                  |
 |           | `hasPhoto`                                                       | booleano — se existe foto em `pitPhotos` com o mesmo id          |
