@@ -1076,32 +1076,13 @@ fieldset {
   }
 }
 
-.badge {
-  align-self: flex-start;
-  padding: 2px var(--space-3);
-  border-radius: 999px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-2);
-  background: var(--ink-700);
-}
-
-.coming-soon {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-5);
-  border: 1px dashed var(--line);
-  border-radius: var(--r-lg);
-}
-
-.coming-soon__body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
 /* ---------- Telas maiores (notebook) ---------- */
+
+/* A dashboard usa a tela larga do notebook; os formulários continuam estreitos. */
+.app-main:has(.dashboard) {
+  max-width: 1120px;
+}
+
 @media (min-width: 720px) {
   .app-header {
     padding-left: var(--space-5);
