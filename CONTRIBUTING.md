@@ -65,4 +65,5 @@ Isso roda lint, formatação e build. O GitHub Actions roda o mesmo comando em t
 
 - Código (variáveis, funções, campos no banco) em **inglês**; textos da tela em **português**.
 - Valores do jogo (pontos, limiares) ficam **só** em `src/config/game.js`.
+- Mudou um campo de formulário (`*-schema.js`)? Atualize junto `firestore.rules`, os testes e `docs/modelo-de-dados.md`.
 - Formatação é automática: instale as extensões recomendadas do VS Code (ele sugere ao abrir o projeto).

@@ -55,7 +55,7 @@ Quem pode ler e escrever cada coleção está em [firebase.md](firebase.md).
 |               | `endgame.park`                                        | booleano                                         |
 | Geral         | `defensePlayed` / `defenseReceived`                   | `"none"` \| `"low"` \| `"high"`                  |
 |               | `issues`                                              | lista: `"stopped"`, `"tipped"`, `"disconnected"` |
-|               | `driverRating`                                        | número de 1 a 5                                  |
+|               | `driverRating`                                        | número de 0 a 5 (0 = sem nota)                   |
 |               | `notes`                                               | texto                                            |
 | Metadados     | `schemaVersion`, `createdAt`, `syncedAt`, `createdBy` | —                                                |
 
@@ -92,13 +92,14 @@ Exemplo:
 | `teamName`       | texto                                                            |
 | `drivetrain`     | `"mecanum"` \| `"tank"` \| `"swerve"` \| `"other"`               |
 | `launchesCell`   | booleano                                                         |
-| `launchRange`    | `"close"` \| `"far"` \| `"both"`                                 |
+| `launchRange`    | `"close"` \| `"far"` \| `"both"` \| `"none"` (não lança)         |
 | `placesNectar`   | booleano                                                         |
 | `intake`         | lista: `"floor"`, `"flower"`, `"garden"`                         |
 | `auto.actions`   | lista: `"leave"`, `"preload"`, `"cycles"`, `"park"`              |
 | `auto.cycles`    | número estimado                                                  |
 | `auto.startSide` | texto                                                            |
-| `strategy`       | texto                                                            |
+| `strategy`       | texto (até 500)                                                  |
+| `hasPhoto`       | booleano — se existe foto em `pitPhotos` com o mesmo id          |
 | Metadados        | `schemaVersion`, `createdAt`, `syncedAt`, `scouter`, `createdBy` |
 
 ## Foto do pit (`pitPhotos`)
@@ -109,6 +110,32 @@ Exemplo:
 | `createdBy` | uid do aparelho                              |
 
 > **Por que a foto fica no Firestore?** O Firebase Storage exige o plano pago. Um documento do Firestore aguenta até 1 MiB, então uma foto comprimida no celular cabe com folga.
+
+## Onde cada coisa é definida
+
+| O quê                                    | Arquivo                                                  |
+| ---------------------------------------- | -------------------------------------------------------- |
+| Campos e opções da partida               | `src/features/match-scouting/match-schema.js`            |
+| Campos e opções do pit                   | `src/features/pit-scouting/pit-schema.js`                |
+| Validação no servidor                    | `firestore.rules` (`validMatchReport`, `validPitReport`) |
+| Testes que garantem os dois em sincronia | `tests/firestore.rules.test.js`                          |
+
+Os testes montam os relatórios com as mesmas funções do app (`toMatchDocument`, `toPitDocument`). Se um campo mudar no formulário e não nas regras, o CI fica vermelho.
+
+## Limites validados pelas regras
+
+| Campo                               | Limite                           |
+| ----------------------------------- | -------------------------------- |
+| `matchNumber`                       | 1 a 999                          |
+| `teamNumber`                        | 1 a 99999                        |
+| Contadores (`made`, `missed`, etc.) | 0 a 99, inteiros                 |
+| `auto.cycles` (pit)                 | 0 a 20                           |
+| `notes`, `strategy`                 | até 500 caracteres               |
+| `teamName`                          | até 60 caracteres                |
+| `scouter`                           | até 40 caracteres                |
+| Foto (`pitPhotos.image`)            | até 400.000 caracteres (~300 KB) |
+
+Qualquer campo a mais, a menos ou com tipo errado é recusado.
 
 ## Fora do escopo (por enquanto)
 
