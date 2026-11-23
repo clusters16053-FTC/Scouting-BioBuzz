@@ -120,14 +120,14 @@ function PendingCycle({ number, seconds, collected, isPreload, onCollected, onHi
       </div>
 
       <Segmented
-        label="Quantas coletou?"
+        label="Quantos POLLEN coletou?"
         value={collected}
         options={COLLECTED_OPTIONS}
         onChange={onCollected}
       />
 
       <fieldset>
-        <legend className="field-label">Quantas acertou?</legend>
+        <legend className="field-label">Quantos acertou?</legend>
         <div className="hit-buttons" style={{ '--hit-count': collected + 1 }}>
           {Array.from({ length: collected + 1 }, (_, hits) => (
             <button key={hits} type="button" className="hit-button" onClick={() => onHits(hits)}>

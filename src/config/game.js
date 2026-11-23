@@ -21,10 +21,10 @@ export const POINTS = Object.freeze({
   teleop: Object.freeze({
     park: 5,
     hiveTip: 20,
-    /** Por peça que sobra no CELL virado pra cima no fim da partida. */
+    /** Por POLLEN/NECTAR que sobra no CELL virado pra cima no fim da partida. */
     cellRemaining: 2,
     bottomNectarBonus: 5,
-    /** Por peça dentro de uma FLOWER que a aliança possui. */
+    /** Por POLLEN/NECTAR dentro de uma FLOWER que a aliança possui. */
     ownedFlowerPiece: 2,
     gardenPiece: 1,
   }),
