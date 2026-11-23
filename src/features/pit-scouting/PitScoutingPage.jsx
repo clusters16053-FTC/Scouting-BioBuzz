@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import ChipGroup from '../../components/ChipGroup.jsx'
 import ConfirmButton from '../../components/ConfirmButton.jsx'
 import NumberField from '../../components/NumberField.jsx'
 import Segmented from '../../components/Segmented.jsx'
@@ -7,10 +6,10 @@ import TextArea from '../../components/TextArea.jsx'
 import Toggle from '../../components/Toggle.jsx'
 import { useSession } from '../access/session-context.js'
 import RequireEvent from '../event/RequireEvent.jsx'
+import FlowerScoringField from './FlowerScoringField.jsx'
 import PhotoField from './PhotoField.jsx'
 import {
   DRIVETRAIN_OPTIONS,
-  FLOWER_PIECE_OPTIONS,
   PIT_DRAFT_VERSION,
   PIT_LIMITS,
   SHOOTER_SHAPE_OPTIONS,
@@ -136,14 +135,12 @@ function PitForm({ eventId, draft }) {
 
       <fieldset className="card stack">
         <legend className="section-title">FLOWER</legend>
-        <ChipGroup
-          label="O que coloca na FLOWER?"
+        <FlowerScoringField
           value={draft.flowerPlaces}
-          options={FLOWER_PIECE_OPTIONS}
           onChange={(flowerPlaces) => update({ flowerPlaces })}
         />
         <Toggle
-          label="Tira POLLEN ou NECTAR da FLOWER?"
+          label="Tira da FLOWER?"
           value={draft.removesFromFlower}
           onChange={(removesFromFlower) => update({ removesFromFlower })}
         />
