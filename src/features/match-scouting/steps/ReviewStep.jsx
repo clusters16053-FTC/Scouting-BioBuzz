@@ -4,40 +4,12 @@ import { formatPercent, formatSeconds, summarizeCycles } from '../cycles/cycle-m
 const yesNo = (value) => (value ? 'Sim' : 'Não')
 const labelOf = (options, value) => options.find((o) => o.value === value)?.label ?? value
 const labelsOf = (options, values) =>
-  values.length ? values.map((v) => labelOf(options, v)).join(', ') : '—'
+  values.length ? values.map((v) => labelOf(options, v)).join(', ') : 'Nenhum'
 
-/** "3 ciclos · 9/12 (75%) · 11,0 s" */
-function describeCycles(timer) {
-  const s = summarizeCycles(timer.cycles)
-  if (!s.totalCycles) return 'Nenhum ciclo'
-  const label = s.totalCycles === 1 ? 'ciclo' : 'ciclos'
-  return `${s.totalCycles} ${label} · ${s.totalHits}/${s.totalShots} (${formatPercent(
-    s.accuracy,
-  )}) · média ${formatSeconds(s.avgCycleSeconds)}`
-}
-
-/** Resumo do relatório antes de salvar. */
+/** Resumo do relatório antes de salvar, agrupado por fase. */
 export default function ReviewStep({ draft, errors }) {
-  const rows = draft.noShow
-    ? [['Robô', 'Não apareceu']]
-    : [
-        ['AUTO · Ciclos', describeCycles(draft.auto.timer)],
-        ['AUTO · LEAVE', yesNo(draft.auto.leave)],
-        ['AUTO · PARK', yesNo(draft.auto.park)],
-        ['TELEOP · Ciclos', describeCycles(draft.teleop.timer)],
-        ['TELEOP · Coleta', labelsOf(INTAKE_OPTIONS, draft.teleop.intake)],
-        ['Final · NECTAR', draft.endgame.nectarFlower],
-        ['Final · POLLEN', draft.endgame.pollenFlower],
-        ['Final · GARDEN', draft.endgame.garden],
-        ['Final · PARK', yesNo(draft.endgame.park)],
-        ['Defesa feita', labelOf(DEFENSE_OPTIONS, draft.defensePlayed)],
-        ['Defesa sofrida', labelOf(DEFENSE_OPTIONS, draft.defenseReceived)],
-        ['Problemas', labelsOf(ISSUE_OPTIONS, draft.issues)],
-        ['Pilotagem', draft.driverRating || '—'],
-      ]
-
   return (
-    <div className="stack">
+    <div className="review">
       {errors.length > 0 && (
         <div className="form-error" role="alert">
           {errors.map((error) => (
@@ -46,6 +18,59 @@ export default function ReviewStep({ draft, errors }) {
         </div>
       )}
 
+      {draft.noShow ? (
+        <ReviewGroup title="Robô" rows={[['Situação', 'Não apareceu']]} />
+      ) : (
+        <>
+          <ReviewGroup
+            title="AUTO"
+            cycles={draft.auto.timer.cycles}
+            rows={[
+              ['LEAVE', yesNo(draft.auto.leave)],
+              ['PARK', yesNo(draft.auto.park)],
+            ]}
+          />
+          <ReviewGroup
+            title="TELEOP"
+            cycles={draft.teleop.timer.cycles}
+            rows={[['Pega POLLEN de', labelsOf(INTAKE_OPTIONS, draft.teleop.intake)]]}
+          />
+          <ReviewGroup
+            title="Final"
+            rows={[
+              ['NECTAR na FLOWER', draft.endgame.nectarFlower],
+              ['POLLEN na FLOWER', draft.endgame.pollenFlower],
+              ['GARDEN', draft.endgame.garden],
+              ['PARK', yesNo(draft.endgame.park)],
+            ]}
+          />
+          <ReviewGroup
+            title="Geral"
+            rows={[
+              ['Defesa feita', labelOf(DEFENSE_OPTIONS, draft.defensePlayed)],
+              ['Defesa sofrida', labelOf(DEFENSE_OPTIONS, draft.defenseReceived)],
+              ['Problemas', labelsOf(ISSUE_OPTIONS, draft.issues)],
+              ['Pilotagem', draft.driverRating ? `${draft.driverRating} de 5` : 'Sem nota'],
+            ]}
+          />
+        </>
+      )}
+
+      {draft.notes.trim() && (
+        <section className="review-group">
+          <h2>Observações</h2>
+          <p className="review-notes">{draft.notes}</p>
+        </section>
+      )}
+    </div>
+  )
+}
+
+function ReviewGroup({ title, cycles, rows }) {
+  return (
+    <section className="review-group">
+      <h2>{title}</h2>
+      {cycles && <CycleStats cycles={cycles} />}
       <dl className="summary">
         {rows.map(([term, value]) => (
           <div key={term} className="summary__row">
@@ -54,13 +79,33 @@ export default function ReviewStep({ draft, errors }) {
           </div>
         ))}
       </dl>
+    </section>
+  )
+}
 
-      {draft.notes.trim() && (
-        <div className="card">
-          <span className="field-label">Observações</span>
-          <p>{draft.notes}</p>
-        </div>
-      )}
-    </div>
+function CycleStats({ cycles }) {
+  const s = summarizeCycles(cycles)
+  return (
+    <dl className="stat-cells">
+      <div>
+        <dt>Ciclos</dt>
+        <dd>{s.totalCycles}</dd>
+      </div>
+      <div>
+        <dt>Acertos</dt>
+        <dd>
+          {s.totalHits}
+          <small>/{s.totalShots}</small>
+        </dd>
+      </div>
+      <div>
+        <dt>Precisão</dt>
+        <dd>{formatPercent(s.accuracy)}</dd>
+      </div>
+      <div>
+        <dt>Média</dt>
+        <dd>{formatSeconds(s.avgCycleSeconds)}</dd>
+      </div>
+    </dl>
   )
 }

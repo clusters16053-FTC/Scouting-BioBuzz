@@ -1,3 +1,4 @@
+import Icon from '../../../components/Icon.jsx'
 import Segmented from '../../../components/Segmented.jsx'
 import { useNow, vibrate } from '../../../lib/use-now.js'
 import {
@@ -40,7 +41,8 @@ export default function CycleTracker({ phaseLabel, timer, onChange, isPreloadPha
             onChange(startPhase(timer, Date.now()))
           }}
         >
-          ▶ Começou o {phaseLabel}
+          <Icon name="play" size={28} />
+          Começou o {phaseLabel}
         </button>
         <p className="step-hint">
           Toque assim que o {phaseLabel} começar. O cronômetro mede quanto tempo o robô leva para
@@ -79,7 +81,7 @@ export default function CycleTracker({ phaseLabel, timer, onChange, isPreloadPha
               onChange(markFired(timer, Date.now()))
             }}
           >
-            🎯 ATIROU
+            ATIROU
           </button>
         </>
       )}
@@ -99,7 +101,8 @@ export default function CycleTracker({ phaseLabel, timer, onChange, isPreloadPha
               className="button button--ghost"
               onClick={() => onChange(undoLastCycle(timer))}
             >
-              ↶ Desfazer ciclo {timer.cycles.length}
+              <Icon name="undo" size={20} />
+              Desfazer ciclo {timer.cycles.length}
             </button>
           )}
         </>
@@ -113,10 +116,8 @@ function PendingCycle({ number, seconds, collected, isPreload, onCollected, onHi
     <div className="cycle-pending card stack">
       <div className="cycle-pending__title">
         <strong>Ciclo {number}</strong>
-        <span className="muted">
-          {isPreload ? 'preload · ' : ''}
-          {formatSeconds(seconds)}
-        </span>
+        {isPreload && <span className="tag">preload</span>}
+        <span className="cycle-pending__time">{formatSeconds(seconds)}</span>
       </div>
 
       <Segmented

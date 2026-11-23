@@ -1,3 +1,5 @@
+import Icon from './Icon.jsx'
+
 /**
  * Múltipla escolha em "chips": toca para marcar, toca de novo para desmarcar.
  *
@@ -27,7 +29,7 @@ export default function ChipGroup({ label, value, options, onChange }) {
               className={`chip ${selected ? 'is-selected' : ''}`}
               onClick={() => toggle(option.value)}
             >
-              {selected ? '✓ ' : ''}
+              {selected && <Icon name="check" size={18} />}
               {option.label}
             </button>
           )

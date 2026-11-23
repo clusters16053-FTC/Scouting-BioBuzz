@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import ConfirmButton from '../../components/ConfirmButton.jsx'
+import Icon from '../../components/Icon.jsx'
 import NumberField from '../../components/NumberField.jsx'
 import Segmented from '../../components/Segmented.jsx'
 import TextArea from '../../components/TextArea.jsx'
@@ -39,9 +40,9 @@ function PitScouting({ eventId }) {
   if (!draft) {
     if (!last) return null
     return (
-      <section className="saved card stack">
-        <span className="saved__icon" aria-hidden="true">
-          ✓
+      <section className="saved">
+        <span className="saved__icon">
+          <Icon name="check" size={32} />
         </span>
         <h1>Entrevista salva</h1>
         <p className="muted">
@@ -52,7 +53,7 @@ function PitScouting({ eventId }) {
           className="button button--save"
           onClick={() => pitDraftStore.set(createEmptyPitDraft())}
         >
-          Nova entrevista →
+          Nova entrevista
         </button>
       </section>
     )
@@ -84,10 +85,7 @@ function PitForm({ eventId, draft }) {
 
   return (
     <section className="stack">
-      <div>
-        <h1>Pit scouting</h1>
-        <p className="muted">{eventId}</p>
-      </div>
+      <h1>Pit scouting</h1>
 
       {errors.length > 0 && (
         <div className="form-error" role="alert">
@@ -97,7 +95,7 @@ function PitForm({ eventId, draft }) {
         </div>
       )}
 
-      <fieldset className="card stack">
+      <fieldset className="form-section">
         <legend className="section-title">Equipe</legend>
         <NumberField
           label="Número da equipe"
@@ -117,10 +115,11 @@ function PitForm({ eventId, draft }) {
         </label>
       </fieldset>
 
-      <fieldset className="card stack">
+      <fieldset className="form-section">
         <legend className="section-title">Robô</legend>
         <Segmented
           label="Tração"
+          columns={2}
           value={draft.drivetrain}
           options={DRIVETRAIN_OPTIONS}
           onChange={(drivetrain) => update({ drivetrain })}
@@ -133,7 +132,7 @@ function PitForm({ eventId, draft }) {
         />
       </fieldset>
 
-      <fieldset className="card stack">
+      <fieldset className="form-section">
         <legend className="section-title">FLOWER</legend>
         <FlowerScoringField
           value={draft.flowerPlaces}
@@ -146,7 +145,7 @@ function PitForm({ eventId, draft }) {
         />
       </fieldset>
 
-      <fieldset className="card stack">
+      <fieldset className="form-section">
         <legend className="section-title">AUTO</legend>
         <TextArea
           label="O que faz no autônomo"
@@ -157,7 +156,7 @@ function PitForm({ eventId, draft }) {
         />
       </fieldset>
 
-      <fieldset className="card stack">
+      <fieldset className="form-section">
         <legend className="section-title">Estratégia e foto</legend>
         <TextArea
           label="Estratégia / observações"

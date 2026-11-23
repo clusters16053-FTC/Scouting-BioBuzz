@@ -1,20 +1,23 @@
 import { Link, NavLink, Outlet } from 'react-router'
+import Icon from '../components/Icon.jsx'
+import { currentEventStore } from '../features/event/event-store.js'
 import { NAV_ITEMS } from './navigation.js'
-import { useSession } from '../features/access/session-context.js'
 
 export default function Layout() {
-  const { member } = useSession()
+  const eventId = currentEventStore.useValue()
 
   return (
     <div className="app-shell">
       <header className="app-header">
         <Link to="/" className="brand">
-          <img src="/favicon.svg" alt="" width="28" height="28" />
-          <span>
-            Scouting <strong>BIOBUZZ</strong>
-          </span>
+          <img src="/clusters-logo.png" alt="" width="32" height="32" />
+          <span>Scouting</span>
         </Link>
-        <span className="team-tag">{member?.name ?? 'Clusters #16053'}</span>
+        {eventId && (
+          <Link to="/" className="event-chip" title="Evento atual">
+            {eventId}
+          </Link>
+        )}
       </header>
 
       <main className="app-main">
@@ -24,7 +27,7 @@ export default function Layout() {
       <nav className="bottom-nav" aria-label="Navegação principal">
         {NAV_ITEMS.map((item) => (
           <NavLink key={item.to} to={item.to} end={item.to === '/'} className="bottom-nav__link">
-            <span aria-hidden="true">{item.icon}</span>
+            <Icon name={item.icon} />
             {item.label}
           </NavLink>
         ))}

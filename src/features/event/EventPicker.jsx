@@ -21,9 +21,9 @@ export default function EventPicker() {
 
   if (!editing) {
     return (
-      <div className="event-picker card">
+      <div className="event-picker">
         <div>
-          <span className="field-label">Evento atual</span>
+          <span className="event-picker__label">Evento atual</span>
           <strong className="event-picker__code">{currentEvent}</strong>
         </div>
         <button
@@ -41,7 +41,7 @@ export default function EventPicker() {
   }
 
   return (
-    <form className="event-picker card form" onSubmit={handleSubmit}>
+    <form className="event-picker event-picker--editing form" onSubmit={handleSubmit}>
       <label className="field">
         <span className="field-label">Código do evento</span>
         <input

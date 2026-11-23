@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Icon from '../../components/Icon.jsx'
 import { ImageTooLargeError, compressImage } from '../../lib/image.js'
 
 /**
@@ -44,7 +45,8 @@ export default function PhotoField({ value, onChange }) {
 
       <div className="photo-actions">
         <label className="button button--ghost">
-          {status === 'working' ? 'Comprimindo…' : value ? 'Trocar foto' : '📷 Tirar foto'}
+          <Icon name="camera" size={20} />
+          {status === 'working' ? 'Comprimindo…' : value ? 'Trocar foto' : 'Tirar foto'}
           <input
             type="file"
             accept="image/*"
