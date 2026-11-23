@@ -5,13 +5,21 @@
 O Firestore guarda **documentos** (parecidos com objetos JSON) dentro de **coleções**.
 
 ```
+config/
+  └── access                     → { teamCode } — secreto, só pelo console
+members/
+  └── {uid}                      → { name, code, joinedAt } — 1 por aparelho
 events/
   └── {eventId}                  ex.: "BRCEFOR" (código do evento)
         ├── matchReports/
         │     └── {id aleatório}   → 1 documento por robô por partida
-        └── pitReports/
-              └── {id aleatório}   → 1 documento por entrevista no pit
+        ├── pitReports/
+        │     └── {id aleatório}   → 1 documento por entrevista no pit
+        └── pitPhotos/
+              └── {mesmo id do pitReport} → { image, createdBy }
 ```
+
+Quem pode ler e escrever cada coleção está em [firebase.md](firebase.md).
 
 ### Decisões
 
@@ -22,31 +30,34 @@ events/
 | Campo `schemaVersion`                | Se o formulário mudar no meio da temporada, o dashboard lê relatórios antigos e novos       |
 | Pit também com ID aleatório          | Duas entrevistas da mesma equipe offline não se apagam; o dashboard mostra a mais recente   |
 | Campos em inglês, telas em português | Padrão de mercado; o usuário só vê português                                                |
+| Foto em `pitPhotos`, separada        | O dashboard monta a tabela sem baixar todas as fotos; a foto só carrega ao abrir a equipe   |
+| `createdBy` em todo relatório        | Registra qual aparelho enviou; a regra do banco impede escrever em nome de outro            |
+| `syncedAt` (hora do servidor)        | Mostra quando o relatório chegou ao banco, diferente de `createdAt` (hora do preenchimento) |
 
 ## Relatório de partida (`matchReports`)
 
-| Fase          | Campo                                    | Tipo                                             |
-| ------------- | ---------------------------------------- | ------------------------------------------------ |
-| Pré           | `matchNumber`                            | número                                           |
-|               | `alliance`                               | `"red"` \| `"blue"`                              |
-|               | `station`                                | `1` \| `2`                                       |
-|               | `teamNumber`                             | número                                           |
-|               | `scouter`                                | texto                                            |
-|               | `noShow`                                 | booleano                                         |
-| AUTO          | `auto.leave`                             | booleano                                         |
-|               | `auto.made` / `auto.missed`              | número (lançamentos no CELL)                     |
-|               | `auto.park`                              | booleano                                         |
-| TELEOP        | `teleop.made` / `teleop.missed`          | número (lançamentos no CELL)                     |
-|               | `teleop.intake`                          | lista: `"floor"`, `"flower"`, `"garden"`         |
-| Último minuto | `endgame.nectarFlower`                   | número                                           |
-|               | `endgame.pollenFlower`                   | número                                           |
-|               | `endgame.garden`                         | número                                           |
-|               | `endgame.park`                           | booleano                                         |
-| Geral         | `defensePlayed` / `defenseReceived`      | `"none"` \| `"low"` \| `"high"`                  |
-|               | `issues`                                 | lista: `"stopped"`, `"tipped"`, `"disconnected"` |
-|               | `driverRating`                           | número de 1 a 5                                  |
-|               | `notes`                                  | texto                                            |
-| Metadados     | `schemaVersion`, `createdAt`, `deviceId` | —                                                |
+| Fase          | Campo                                                 | Tipo                                             |
+| ------------- | ----------------------------------------------------- | ------------------------------------------------ |
+| Pré           | `matchNumber`                                         | número                                           |
+|               | `alliance`                                            | `"red"` \| `"blue"`                              |
+|               | `station`                                             | `1` \| `2`                                       |
+|               | `teamNumber`                                          | número                                           |
+|               | `scouter`                                             | texto                                            |
+|               | `noShow`                                              | booleano                                         |
+| AUTO          | `auto.leave`                                          | booleano                                         |
+|               | `auto.made` / `auto.missed`                           | número (lançamentos no CELL)                     |
+|               | `auto.park`                                           | booleano                                         |
+| TELEOP        | `teleop.made` / `teleop.missed`                       | número (lançamentos no CELL)                     |
+|               | `teleop.intake`                                       | lista: `"floor"`, `"flower"`, `"garden"`         |
+| Último minuto | `endgame.nectarFlower`                                | número                                           |
+|               | `endgame.pollenFlower`                                | número                                           |
+|               | `endgame.garden`                                      | número                                           |
+|               | `endgame.park`                                        | booleano                                         |
+| Geral         | `defensePlayed` / `defenseReceived`                   | `"none"` \| `"low"` \| `"high"`                  |
+|               | `issues`                                              | lista: `"stopped"`, `"tipped"`, `"disconnected"` |
+|               | `driverRating`                                        | número de 1 a 5                                  |
+|               | `notes`                                               | texto                                            |
+| Metadados     | `schemaVersion`, `createdAt`, `syncedAt`, `createdBy` | —                                                |
 
 Exemplo:
 
@@ -68,29 +79,36 @@ Exemplo:
   "driverRating": 4,
   "notes": "ciclo rápido, erra de longe",
   "createdAt": "2026-12-05T14:32:10Z",
-  "deviceId": "a1b2c3"
+  "syncedAt": "2026-12-05T14:41:02Z",
+  "createdBy": "uid-do-aparelho"
 }
 ```
 
 ## Relatório de pit (`pitReports`)
 
-| Campo            | Tipo                                                |
-| ---------------- | --------------------------------------------------- |
-| `teamNumber`     | número                                              |
-| `teamName`       | texto                                               |
-| `drivetrain`     | `"mecanum"` \| `"tank"` \| `"swerve"` \| `"other"`  |
-| `launchesCell`   | booleano                                            |
-| `launchRange`    | `"close"` \| `"far"` \| `"both"`                    |
-| `placesNectar`   | booleano                                            |
-| `intake`         | lista: `"floor"`, `"flower"`, `"garden"`            |
-| `auto.actions`   | lista: `"leave"`, `"preload"`, `"cycles"`, `"park"` |
-| `auto.cycles`    | número estimado                                     |
-| `auto.startSide` | texto                                               |
-| `strategy`       | texto                                               |
-| `photo`          | texto (imagem JPEG em base64, ~800 px, ~100 KB)     |
-| Metadados        | `schemaVersion`, `createdAt`, `scouter`, `deviceId` |
+| Campo            | Tipo                                                             |
+| ---------------- | ---------------------------------------------------------------- |
+| `teamNumber`     | número                                                           |
+| `teamName`       | texto                                                            |
+| `drivetrain`     | `"mecanum"` \| `"tank"` \| `"swerve"` \| `"other"`               |
+| `launchesCell`   | booleano                                                         |
+| `launchRange`    | `"close"` \| `"far"` \| `"both"`                                 |
+| `placesNectar`   | booleano                                                         |
+| `intake`         | lista: `"floor"`, `"flower"`, `"garden"`                         |
+| `auto.actions`   | lista: `"leave"`, `"preload"`, `"cycles"`, `"park"`              |
+| `auto.cycles`    | número estimado                                                  |
+| `auto.startSide` | texto                                                            |
+| `strategy`       | texto                                                            |
+| Metadados        | `schemaVersion`, `createdAt`, `syncedAt`, `scouter`, `createdBy` |
 
-> **Por que a foto fica dentro do documento?** O Firebase Storage exige o plano pago. Um documento do Firestore aguenta até 1 MiB, então uma foto comprimida no celular cabe com folga.
+## Foto do pit (`pitPhotos`)
+
+| Campo       | Tipo                                         |
+| ----------- | -------------------------------------------- |
+| `image`     | texto (JPEG em base64, ~800 px, até ~300 KB) |
+| `createdBy` | uid do aparelho                              |
+
+> **Por que a foto fica no Firestore?** O Firebase Storage exige o plano pago. Um documento do Firestore aguenta até 1 MiB, então uma foto comprimida no celular cabe com folga.
 
 ## Fora do escopo (por enquanto)
 

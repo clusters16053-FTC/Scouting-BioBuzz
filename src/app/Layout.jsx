@@ -1,7 +1,10 @@
 import { Link, NavLink, Outlet } from 'react-router'
 import { NAV_ITEMS } from './navigation.js'
+import { useSession } from '../features/access/session-context.js'
 
 export default function Layout() {
+  const { member } = useSession()
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -11,7 +14,7 @@ export default function Layout() {
             Scouting <strong>BIOBUZZ</strong>
           </span>
         </Link>
-        <span className="team-tag">Clusters #16053</span>
+        <span className="team-tag">{member?.name ?? 'Clusters #16053'}</span>
       </header>
 
       <main className="app-main">

@@ -1,5 +1,6 @@
 # Roda em todo Pull Request e em push na main.
-# Garante que ninguém junta código que quebra o lint, a formatação ou o build.
+# Garante que ninguém junta código que quebra o lint, a formatação, o build
+# ou as regras de segurança do banco.
 name: CI
 
 on:
@@ -9,6 +10,7 @@ on:
 
 jobs:
   check:
+    name: Lint, formatação e build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,3 +22,29 @@ jobs:
 
       - run: npm ci
       - run: npm run check
+
+  rules:
+    name: Regras de segurança (Firestore)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # O emulador do Firestore é um programa Java.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      # Guarda o emulador baixado para não baixar de novo a cada execução.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/firebase/emulators
+          key: firebase-emulators-${{ hashFiles('package-lock.json') }}
+
+      - run: npm ci
+      - run: npm run test:rules

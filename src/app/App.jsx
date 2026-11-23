@@ -5,23 +5,31 @@ import MatchScoutingPage from '../features/match-scouting/MatchScoutingPage.jsx'
 import PitScoutingPage from '../features/pit-scouting/PitScoutingPage.jsx'
 import DashboardPage from '../features/dashboard/DashboardPage.jsx'
 import NotFoundPage from '../features/home/NotFoundPage.jsx'
+import SessionProvider from '../features/access/SessionProvider.jsx'
+import AccessGate from '../features/access/AccessGate.jsx'
 
 /**
- * Mapa de rotas do app. Toda tela nova entra aqui.
- * O <Layout> envolve todas as rotas e desenha cabeçalho + navegação.
+ * Raiz do app.
+ * - <SessionProvider> descobre quem está usando o aparelho.
+ * - <AccessGate> só libera as telas para quem entrou na equipe.
+ * - <Routes> é o mapa de telas; toda tela nova entra aqui.
  */
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route index element={<HomePage />} />
-          <Route path="partida" element={<MatchScoutingPage />} />
-          <Route path="pit" element={<PitScoutingPage />} />
-          <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <SessionProvider>
+      <AccessGate>
+        <BrowserRouter>
+          <Routes>
+            <Route element={<Layout />}>
+              <Route index element={<HomePage />} />
+              <Route path="partida" element={<MatchScoutingPage />} />
+              <Route path="pit" element={<PitScoutingPage />} />
+              <Route path="dashboard" element={<DashboardPage />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </AccessGate>
+    </SessionProvider>
   )
 }

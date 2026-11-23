@@ -31,14 +31,14 @@ Alternativas avaliadas:
 
 - **Offline nativo:** com a persistência ligada, o Firestore guarda as escritas no aparelho e envia sozinho quando a conexão volta. Não precisamos construir fila de sincronização na mão.
 - **Tempo real:** o dashboard "escuta" as coleções e atualiza sem recarregar a página.
-- **Sem backend:** o navegador fala direto com o banco, e a proteção vem das **regras de segurança** do Firestore.
+- **Sem backend:** o navegador fala direto com o banco, e a proteção vem das **regras de segurança** do Firestore, combinadas com login anônimo + código da equipe. Detalhes em [firebase.md](firebase.md).
 
 Alternativas avaliadas:
 
 - **MongoDB Atlas:** a MongoDB removeu o Device Sync e a Data API em 2025. Usar o Atlas exigiria criar uma API própria e construir offline e tempo real na mão.
 - **Supabase:** sem offline nativo, e projetos grátis pausam após um período sem uso.
 
-> **Fotos:** o Firebase Storage passou a exigir o plano pago (Blaze). Por isso as fotos do pit são comprimidas no celular e salvas dentro do próprio documento no Firestore.
+> **Fotos:** o Firebase Storage passou a exigir o plano pago (Blaze). Por isso as fotos do pit são comprimidas no celular e salvas no Firestore, numa coleção separada (`pitPhotos`).
 
 ### PWA (Progressive Web App)
 
@@ -46,7 +46,7 @@ Um _service worker_ guarda os arquivos do site no aparelho. Depois que o scouter
 
 ## Fluxo no dia da competição
 
-1. **Antes do evento, com wifi:** cada scouter abre o site e instala na tela inicial.
+1. **Antes do evento, com wifi:** cada scouter abre o site, entra com o código da equipe e instala na tela inicial.
 2. **Perto da arena, sem wifi:** o scouter preenche a partida e o relatório fica salvo no aparelho como pendente.
 3. **De volta ao wifi:** o app envia os pendentes sozinho.
 4. **Dashboard:** recebe os relatórios em tempo real.
