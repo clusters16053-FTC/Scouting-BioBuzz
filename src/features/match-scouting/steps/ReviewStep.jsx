@@ -1,19 +1,30 @@
 import { DEFENSE_OPTIONS, INTAKE_OPTIONS, ISSUE_OPTIONS } from '../match-schema.js'
+import { formatPercent, formatSeconds, summarizeCycles } from '../cycles/cycle-math.js'
 
 const yesNo = (value) => (value ? 'Sim' : 'Não')
 const labelOf = (options, value) => options.find((o) => o.value === value)?.label ?? value
 const labelsOf = (options, values) =>
   values.length ? values.map((v) => labelOf(options, v)).join(', ') : '—'
 
+/** "3 ciclos · 9/12 (75%) · 11,0 s" */
+function describeCycles(timer) {
+  const s = summarizeCycles(timer.cycles)
+  if (!s.totalCycles) return 'Nenhum ciclo'
+  const label = s.totalCycles === 1 ? 'ciclo' : 'ciclos'
+  return `${s.totalCycles} ${label} · ${s.totalHits}/${s.totalShots} (${formatPercent(
+    s.accuracy,
+  )}) · média ${formatSeconds(s.avgCycleSeconds)}`
+}
+
 /** Resumo do relatório antes de salvar. */
 export default function ReviewStep({ draft, errors }) {
   const rows = draft.noShow
     ? [['Robô', 'Não apareceu']]
     : [
+        ['AUTO · Ciclos', describeCycles(draft.auto.timer)],
         ['AUTO · LEAVE', yesNo(draft.auto.leave)],
-        ['AUTO · CELL', `${draft.auto.made} acertos / ${draft.auto.missed} erros`],
         ['AUTO · PARK', yesNo(draft.auto.park)],
-        ['TELEOP · CELL', `${draft.teleop.made} acertos / ${draft.teleop.missed} erros`],
+        ['TELEOP · Ciclos', describeCycles(draft.teleop.timer)],
         ['TELEOP · Coleta', labelsOf(INTAKE_OPTIONS, draft.teleop.intake)],
         ['Final · NECTAR', draft.endgame.nectarFlower],
         ['Final · POLLEN', draft.endgame.pollenFlower],

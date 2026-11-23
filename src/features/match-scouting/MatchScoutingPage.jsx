@@ -2,7 +2,13 @@ import { useEffect, useState } from 'react'
 import ConfirmButton from '../../components/ConfirmButton.jsx'
 import RequireEvent from '../event/RequireEvent.jsx'
 import { useSession } from '../access/session-context.js'
-import { STEPS, createEmptyMatchDraft, isStepAvailable, validatePreMatch } from './match-schema.js'
+import {
+  MATCH_DRAFT_VERSION,
+  STEPS,
+  createEmptyMatchDraft,
+  isStepAvailable,
+  validatePreMatch,
+} from './match-schema.js'
 import { lastMatchStore, matchDraftStore } from './match-store.js'
 import { saveMatchReport } from './match-service.js'
 import PreMatchStep from './steps/PreMatchStep.jsx'
@@ -30,10 +36,21 @@ function MatchScouting({ eventId }) {
   const draft = matchDraftStore.useValue()
   const last = lastMatchStore.useValue()
 
-  // Primeira visita: sem rascunho e sem relatório anterior → começa um rascunho novo.
+  // Rascunho de uma versão antiga do formulário: descarta, mantendo aliança e posição.
+  const outdated = draft && draft.draftVersion !== MATCH_DRAFT_VERSION
+
   useEffect(() => {
-    if (!draft && !last) matchDraftStore.set(createEmptyMatchDraft())
-  }, [draft, last])
+    if (outdated) {
+      matchDraftStore.set(
+        createEmptyMatchDraft({ alliance: draft.alliance, station: draft.station }),
+      )
+    } else if (!draft && !last) {
+      // Primeira visita: sem rascunho e sem relatório anterior → começa um rascunho novo.
+      matchDraftStore.set(createEmptyMatchDraft())
+    }
+  }, [draft, last, outdated])
+
+  if (outdated) return null
 
   if (!draft) {
     if (!last) return null

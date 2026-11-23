@@ -45,9 +45,9 @@ Quem pode ler e escrever cada coleção está em [firebase.md](firebase.md).
 |               | `scouter`                                             | texto                                            |
 |               | `noShow`                                              | booleano                                         |
 | AUTO          | `auto.leave`                                          | booleano                                         |
-|               | `auto.made` / `auto.missed`                           | número (lançamentos no CELL)                     |
 |               | `auto.park`                                           | booleano                                         |
-| TELEOP        | `teleop.made` / `teleop.missed`                       | número (lançamentos no CELL)                     |
+|               | `auto.cycles` + totais                                | ver [Ciclos](#ciclos-auto-e-teleop)              |
+| TELEOP        | `teleop.cycles` + totais                              | ver [Ciclos](#ciclos-auto-e-teleop)              |
 |               | `teleop.intake`                                       | lista: `"floor"`, `"flower"`, `"garden"`         |
 | Último minuto | `endgame.nectarFlower`                                | número                                           |
 |               | `endgame.pollenFlower`                                | número                                           |
@@ -63,15 +63,33 @@ Exemplo:
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "matchNumber": 12,
   "alliance": "red",
   "station": 1,
   "teamNumber": 16053,
   "scouter": "Ana",
   "noShow": false,
-  "auto": { "leave": true, "made": 3, "missed": 1, "park": false },
-  "teleop": { "made": 9, "missed": 4, "intake": ["floor", "flower"] },
+  "auto": {
+    "leave": true,
+    "park": false,
+    "cycles": [
+      { "at": 2.1, "seconds": 2.1, "collected": 4, "hits": 4, "preload": true },
+      { "at": 16.4, "seconds": 12.8, "collected": 4, "hits": 3, "preload": false }
+    ],
+    "totalCycles": 2,
+    "totalShots": 8,
+    "totalHits": 7,
+    "avgCycleSeconds": 12.8
+  },
+  "teleop": {
+    "cycles": [{ "at": 11.0, "seconds": 11.0, "collected": 3, "hits": 2, "preload": false }],
+    "totalCycles": 1,
+    "totalShots": 3,
+    "totalHits": 2,
+    "avgCycleSeconds": 11.0,
+    "intake": ["floor", "flower"]
+  },
   "endgame": { "nectarFlower": 2, "pollenFlower": 1, "garden": 0, "park": true },
   "defensePlayed": "low",
   "defenseReceived": "none",
@@ -83,6 +101,31 @@ Exemplo:
   "createdBy": "uid-do-aparelho"
 }
 ```
+
+### Ciclos (AUTO e TELEOP)
+
+Um **ciclo** = o robô coleta peças (no máximo 4, regra G407), fica pronto e atira. O scouter toca **ATIROU** quando o robô começa a atirar e depois informa **quantas coletou** (já vem 4) e **quantas acertou**.
+
+| Campo do ciclo | Significado                                                                    |
+| -------------- | ------------------------------------------------------------------------------ |
+| `at`           | segundos desde o "Começou" da fase até o ATIROU                                |
+| `seconds`      | **tempo de ciclo**: do fim do ciclo anterior (ou do "Começou") até o ATIROU    |
+| `collected`    | peças coletadas = tiros (1 a 4)                                                |
+| `hits`         | acertos no CELL (0 a `collected`)                                              |
+| `preload`      | `true` só no 1º ciclo do AUTO (o robô já começa carregado; fica fora da média) |
+
+Totais salvos junto, **calculados pelo app**:
+
+| Campo             | Cálculo                                                     |
+| ----------------- | ----------------------------------------------------------- |
+| `totalCycles`     | quantidade de ciclos                                        |
+| `totalShots`      | soma de `collected`                                         |
+| `totalHits`       | soma de `hits`                                              |
+| `avgCycleSeconds` | média de `seconds` **sem o preload** (`null` se não houver) |
+
+O scouter não anota erros: **erros = `totalShots − totalHits`** e **precisão = `totalHits ÷ totalShots`**.
+
+> **Por que salvar totais que dá para calcular?** As regras do Firestore não têm laço, então não conseguem conferir cada item da lista `cycles`. Elas validam os totais (que precisam bater com a lista) e o dashboard ignora ciclos com valores absurdos.
 
 ## Relatório de pit (`pitReports`)
 
@@ -116,24 +159,27 @@ Exemplo:
 | O quê                                    | Arquivo                                                  |
 | ---------------------------------------- | -------------------------------------------------------- |
 | Campos e opções da partida               | `src/features/match-scouting/match-schema.js`            |
+| Cálculos dos ciclos                      | `src/features/match-scouting/cycles/cycle-math.js`       |
 | Campos e opções do pit                   | `src/features/pit-scouting/pit-schema.js`                |
 | Validação no servidor                    | `firestore.rules` (`validMatchReport`, `validPitReport`) |
-| Testes que garantem os dois em sincronia | `tests/firestore.rules.test.js`                          |
+| Testes que garantem os dois em sincronia | `tests/rules/firestore.rules.test.js`                    |
 
 Os testes montam os relatórios com as mesmas funções do app (`toMatchDocument`, `toPitDocument`). Se um campo mudar no formulário e não nas regras, o CI fica vermelho.
 
 ## Limites validados pelas regras
 
-| Campo                               | Limite                           |
-| ----------------------------------- | -------------------------------- |
-| `matchNumber`                       | 1 a 999                          |
-| `teamNumber`                        | 1 a 99999                        |
-| Contadores (`made`, `missed`, etc.) | 0 a 99, inteiros                 |
-| `auto.cycles` (pit)                 | 0 a 20                           |
-| `notes`, `strategy`                 | até 500 caracteres               |
-| `teamName`                          | até 60 caracteres                |
-| `scouter`                           | até 40 caracteres                |
-| Foto (`pitPhotos.image`)            | até 400.000 caracteres (~300 KB) |
+| Campo                    | Limite                             |
+| ------------------------ | ---------------------------------- |
+| `matchNumber`            | 1 a 999                            |
+| `teamNumber`             | 1 a 99999                          |
+| Contadores do final      | 0 a 99, inteiros                   |
+| Ciclos por fase          | até 30, com no máximo 4 tiros cada |
+| `avgCycleSeconds`        | `null` ou de 0 a 600               |
+| `auto.cycles` (pit)      | 0 a 20                             |
+| `notes`, `strategy`      | até 500 caracteres                 |
+| `teamName`               | até 60 caracteres                  |
+| `scouter`                | até 40 caracteres                  |
+| Foto (`pitPhotos.image`) | até 400.000 caracteres (~300 KB)   |
 
 Qualquer campo a mais, a menos ou com tipo errado é recusado.
 

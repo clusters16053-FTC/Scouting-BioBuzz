@@ -622,6 +622,154 @@ fieldset.card {
   background: var(--good);
 }
 
+/* ---------- Ciclos (AUTO / TELEOP) ---------- */
+.cycle-tracker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.cycle-start,
+.cycle-fire {
+  min-height: 120px;
+  border: none;
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 1.6rem;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.cycle-start {
+  color: var(--accent-ink);
+  background: var(--accent);
+}
+
+.cycle-fire {
+  min-height: 160px;
+  font-size: 2rem;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: var(--red);
+}
+
+.cycle-start:active,
+.cycle-fire:active,
+.hit-button:active {
+  transform: scale(0.97);
+}
+
+.cycle-clock {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.cycle-clock strong {
+  font-size: 2.4rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.cycle-pending {
+  border-color: var(--accent);
+}
+
+.cycle-pending__title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 1.1rem;
+}
+
+/* Um botão por resultado possível (0 até o que foi coletado). */
+.hit-buttons {
+  display: grid;
+  grid-template-columns: repeat(var(--hit-count, 5), 1fr);
+  gap: var(--space-2);
+}
+
+.hit-button {
+  min-height: 72px;
+  border: none;
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #062b12;
+  background: var(--good);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.hit-button:first-child {
+  color: #fff;
+  background: var(--surface-2);
+}
+
+.cycle-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.cycle-summary div {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  text-align: center;
+  background: var(--surface);
+}
+
+.cycle-summary dt {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.cycle-summary dd {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.cycle-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.cycle-row {
+  display: grid;
+  grid-template-columns: 3ch 1fr auto 3.5ch;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  font-variant-numeric: tabular-nums;
+  background: var(--surface);
+}
+
+.cycle-row:nth-child(even) {
+  background: var(--surface-2);
+}
+
+.cycle-row__number {
+  color: var(--text-muted);
+}
+
+.cycle-row__dots {
+  letter-spacing: 2px;
+  color: var(--good);
+}
+
+.cycle-row__score {
+  font-weight: 700;
+  text-align: right;
+}
+
 /* ---------- Pit ---------- */
 .photo-preview {
   margin: 0 0 var(--space-3);

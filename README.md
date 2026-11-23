@@ -40,14 +40,17 @@ Abra o endereço que aparecer no terminal (normalmente `http://localhost:5173`).
 
 ## Scripts
 
-| Comando           | O que faz                                             |
-| ----------------- | ----------------------------------------------------- |
-| `npm run dev`     | Servidor de desenvolvimento com recarga automática    |
-| `npm run build`   | Gera a versão de produção na pasta `dist/`            |
-| `npm run preview` | Serve o `dist/` localmente pra testar o build         |
-| `npm run lint`    | Procura erros comuns no código (oxlint)               |
-| `npm run format`  | Formata todos os arquivos (Prettier)                  |
-| `npm run check`   | Lint + formatação + build — rode antes de abrir um PR |
+| Comando                 | O que faz                                                                |
+| ----------------------- | ------------------------------------------------------------------------ |
+| `npm run dev`           | Servidor de desenvolvimento com recarga automática                       |
+| `npm run dev:emulators` | Mesmo servidor, mas com Firebase falso no computador (precisa de Java)   |
+| `npm run build`         | Gera a versão de produção na pasta `dist/`                               |
+| `npm run preview`       | Serve o `dist/` localmente pra testar o build                            |
+| `npm run lint`          | Procura erros comuns no código (oxlint)                                  |
+| `npm run format`        | Formata todos os arquivos (Prettier)                                     |
+| `npm run test:unit`     | Testes rápidos da lógica (ex.: cálculo dos ciclos)                       |
+| `npm run test:rules`    | Testa as regras de segurança do banco (precisa de Java)                  |
+| `npm run check`         | Lint + formatação + testes unitários + build — rode antes de abrir um PR |
 
 ## Estrutura de pastas
 
@@ -71,7 +74,9 @@ scouting-biobuzz/
 │   ├── lib/              # Firebase, caminhos do banco, IDs, compressão de imagem
 │   ├── styles/           # CSS global e tokens de design
 │   └── main.jsx          # Ponto de entrada
-├── tests/                # Testes das regras de segurança
+├── tests/
+│   ├── unit/             # Testes rápidos da lógica (rodam em qualquer lugar)
+│   └── rules/            # Testes das regras de segurança (precisam do emulador)
 ├── firestore.rules       # Regras de segurança do banco
 ├── firebase.json         # Configuração do Firebase CLI e emuladores
 ├── index.html

@@ -31,7 +31,7 @@ Ninguém apaga nada pelo app, nem membro. Se precisar apagar, é pelo console.
 
 ### Testes das regras
 
-[`tests/firestore.rules.test.js`](../tests/firestore.rules.test.js) simula ataques e usos normais: quem não tem login, quem errou o código, quem tenta escrever em nome de outro... O GitHub Actions roda esses testes em todo PR.
+[`tests/rules/firestore.rules.test.js`](../tests/rules/firestore.rules.test.js) simula ataques e usos normais: quem não tem login, quem errou o código, quem tenta escrever em nome de outro... O GitHub Actions roda esses testes em todo PR.
 
 Para rodar no seu computador (precisa do [Java 21+](https://adoptium.net/)):
 
