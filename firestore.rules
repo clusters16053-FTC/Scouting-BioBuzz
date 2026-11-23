@@ -6,9 +6,11 @@ rules_version = '2';
 //   1. O app faz login ANÔNIMO (cada aparelho ganha um uid).
 //   2. Para virar membro, o aparelho cria members/{uid} informando o código da equipe.
 //      A regra compara com config/access.teamCode, que nenhum navegador consegue ler.
-//   3. Só membros leem e escrevem relatórios.
+//   3. Só membros leem e escrevem relatórios, e cada campo é validado.
 //
 // Explicação detalhada em docs/firebase.md.
+// Os formatos dos relatórios estão em docs/modelo-de-dados.md e em
+// src/features/*/…-schema.js — mudou lá, muda aqui (e nos testes).
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -32,22 +34,119 @@ service cloud.firestore {
       return request.resource.data;
     }
 
-    function isPositiveInt(value) {
-      return value is int && value > 0;
+    // O mapa tem exatamente estas chaves: nem falta, nem sobra.
+    function hasExactly(fieldsMap, fields) {
+      return fieldsMap.keys().hasAll(fields) && fieldsMap.keys().hasOnly(fields);
     }
 
-    // Campos que todo relatório precisa ter.
-    // A validação completa de cada formulário entra na etapa 4.
-    function validReportBase() {
-      return incoming().schemaVersion is int
-        && isPositiveInt(incoming().teamNumber)
-        && incoming().createdBy == request.auth.uid
-        && incoming().syncedAt == request.time;
+    function isIntBetween(value, min, max) {
+      return value is int && value >= min && value <= max;
+    }
+
+    function isCount(value) {
+      return isIntBetween(value, 0, 99);
+    }
+
+    function isText(value, maxLength) {
+      return value is string && value.size() <= maxLength;
+    }
+
+    // Lista curta cujos itens estão todos entre os permitidos.
+    function isListOf(value, allowed) {
+      return value is list && value.size() <= allowed.size() && value.hasOnly(allowed);
+    }
+
+    // Metadados que todo relatório tem.
+    function validMeta(report) {
+      return report.schemaVersion == 1
+        && isText(report.scouter, 40)
+        && report.createdAt is timestamp
+        && report.createdBy == request.auth.uid
+        && report.syncedAt == request.time;
     }
 
     // Em edições, o autor original não pode ser trocado.
     function keepsAuthor() {
       return incoming().createdBy == resource.data.createdBy;
+    }
+
+    // ---------- Relatório de partida ----------
+
+    function validAuto(auto) {
+      return auto is map
+        && hasExactly(auto, ['leave', 'made', 'missed', 'park'])
+        && auto.leave is bool
+        && isCount(auto.made)
+        && isCount(auto.missed)
+        && auto.park is bool;
+    }
+
+    function validTeleop(teleop) {
+      return teleop is map
+        && hasExactly(teleop, ['made', 'missed', 'intake'])
+        && isCount(teleop.made)
+        && isCount(teleop.missed)
+        && isListOf(teleop.intake, ['floor', 'flower', 'garden']);
+    }
+
+    function validEndgame(endgame) {
+      return endgame is map
+        && hasExactly(endgame, ['nectarFlower', 'pollenFlower', 'garden', 'park'])
+        && isCount(endgame.nectarFlower)
+        && isCount(endgame.pollenFlower)
+        && isCount(endgame.garden)
+        && endgame.park is bool;
+    }
+
+    function validMatchReport(report) {
+      return hasExactly(report, [
+          'schemaVersion', 'matchNumber', 'alliance', 'station', 'teamNumber', 'scouter',
+          'noShow', 'auto', 'teleop', 'endgame', 'defensePlayed', 'defenseReceived',
+          'issues', 'driverRating', 'notes', 'createdAt', 'createdBy', 'syncedAt'
+        ])
+        && validMeta(report)
+        && isIntBetween(report.matchNumber, 1, 999)
+        && report.alliance in ['red', 'blue']
+        && report.station in [1, 2]
+        && isIntBetween(report.teamNumber, 1, 99999)
+        && report.noShow is bool
+        && validAuto(report.auto)
+        && validTeleop(report.teleop)
+        && validEndgame(report.endgame)
+        && report.defensePlayed in ['none', 'low', 'high']
+        && report.defenseReceived in ['none', 'low', 'high']
+        && isListOf(report.issues, ['stopped', 'tipped', 'disconnected'])
+        && isIntBetween(report.driverRating, 0, 5)
+        && isText(report.notes, 500);
+    }
+
+    // ---------- Relatório de pit ----------
+
+    function validPitAuto(auto) {
+      return auto is map
+        && hasExactly(auto, ['actions', 'cycles', 'startSide'])
+        && isListOf(auto.actions, ['leave', 'preload', 'cycles', 'park'])
+        && isIntBetween(auto.cycles, 0, 20)
+        && isText(auto.startSide, 40);
+    }
+
+    function validPitReport(report) {
+      return hasExactly(report, [
+          'schemaVersion', 'teamNumber', 'teamName', 'drivetrain', 'launchesCell',
+          'launchRange', 'placesNectar', 'intake', 'auto', 'strategy', 'hasPhoto',
+          'scouter', 'createdAt', 'createdBy', 'syncedAt'
+        ])
+        && validMeta(report)
+        && isIntBetween(report.teamNumber, 1, 99999)
+        && isText(report.teamName, 60)
+        && report.drivetrain in ['mecanum', 'tank', 'swerve', 'other']
+        && report.launchesCell is bool
+        && report.launchRange in ['none', 'close', 'far', 'both']
+        && report.placesNectar is bool
+        && isListOf(report.intake, ['floor', 'flower', 'garden'])
+        && validPitAuto(report.auto)
+        && isText(report.strategy, 500)
+        && report.hasPhoto is bool;
     }
 
     // ---------- Configuração secreta ----------
@@ -84,24 +183,15 @@ service cloud.firestore {
 
       match /matchReports/{reportId} {
         allow read: if isMember();
-        allow create: if isMember()
-          && validReportBase()
-          && isPositiveInt(incoming().matchNumber)
-          && incoming().alliance in ['red', 'blue']
-          && incoming().station in [1, 2];
-        allow update: if isMember()
-          && validReportBase()
-          && keepsAuthor()
-          && isPositiveInt(incoming().matchNumber)
-          && incoming().alliance in ['red', 'blue']
-          && incoming().station in [1, 2];
+        allow create: if isMember() && validMatchReport(incoming());
+        allow update: if isMember() && validMatchReport(incoming()) && keepsAuthor();
         allow delete: if false;
       }
 
       match /pitReports/{reportId} {
         allow read: if isMember();
-        allow create: if isMember() && validReportBase();
-        allow update: if isMember() && validReportBase() && keepsAuthor();
+        allow create: if isMember() && validPitReport(incoming());
+        allow update: if isMember() && validPitReport(incoming()) && keepsAuthor();
         allow delete: if false;
       }
 
@@ -110,7 +200,7 @@ service cloud.firestore {
       match /pitPhotos/{reportId} {
         allow read: if isMember();
         allow create, update: if isMember()
-          && incoming().keys().hasOnly(['image', 'createdBy'])
+          && hasExactly(incoming(), ['image', 'createdBy'])
           && incoming().createdBy == request.auth.uid
           && incoming().image is string
           && incoming().image.size() <= 400000;

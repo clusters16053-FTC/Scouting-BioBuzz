@@ -59,15 +59,16 @@ scouting-biobuzz/
 ├── scripts/              # Scripts auxiliares (ex.: preparar o emulador)
 ├── src/
 │   ├── app/              # Casca do app: rotas, layout, navegação
-│   ├── components/       # Componentes reutilizáveis entre telas
+│   ├── components/       # Peças de formulário reutilizáveis (Counter, Segmented, ChipGroup…)
 │   ├── config/           # Constantes do jogo (pontuação, limiares de RP)
 │   ├── features/         # Uma pasta por funcionalidade
 │   │   ├── access/       # Entrar na equipe (login + código)
+│   │   ├── event/        # Evento atual (salvo no aparelho)
 │   │   ├── home/
 │   │   ├── match-scouting/
 │   │   ├── pit-scouting/
 │   │   └── dashboard/
-│   ├── lib/              # Conexão com o Firebase e caminhos do banco
+│   ├── lib/              # Firebase, caminhos do banco, IDs, compressão de imagem
 │   ├── styles/           # CSS global e tokens de design
 │   └── main.jsx          # Ponto de entrada
 ├── tests/                # Testes das regras de segurança
@@ -93,7 +94,7 @@ scouting-biobuzz/
 - [x] **1. Definição** — campos coletados e modelo de dados
 - [x] **2. Base** — projeto, organização do repositório e deploy
 - [x] **3. Firebase** — banco, regras de segurança e entrada com código da equipe
-- [ ] **4. Formulários** — scouting de partida e pit online
+- [x] **4. Formulários** — scouting de partida (por fases) e de pit (com foto)
 - [ ] **5. Offline (PWA)** — fila de pendentes e indicador de sincronização
 - [ ] **6. Dashboard** — ranking, médias e comparação de equipes
 - [ ] **7. Teste de campo** — modo avião, vários aparelhos, conflitos

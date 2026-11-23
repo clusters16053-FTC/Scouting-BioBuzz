@@ -1,16 +1,21 @@
 import { Link } from 'react-router'
 import { NAV_ITEMS } from '../../app/navigation.js'
 import { SEASON } from '../../config/game.js'
+import EventPicker from '../event/EventPicker.jsx'
 
 export default function HomePage() {
   const shortcuts = NAV_ITEMS.filter((item) => item.to !== '/')
 
   return (
-    <section className="home">
-      <h1>
-        {SEASON.name} <span className="muted">{SEASON.year}</span>
-      </h1>
-      <p className="muted">O que você vai fazer agora?</p>
+    <section className="home stack">
+      <div>
+        <h1>
+          {SEASON.name} <span className="muted">{SEASON.year}</span>
+        </h1>
+        <p className="muted">O que você vai fazer agora?</p>
+      </div>
+
+      <EventPicker />
 
       <div className="shortcut-grid">
         {shortcuts.map((item) => (
