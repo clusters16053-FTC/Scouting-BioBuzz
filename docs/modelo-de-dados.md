@@ -104,13 +104,13 @@ Exemplo:
 
 ### Ciclos (AUTO e TELEOP)
 
-Um **ciclo** = o robô coleta peças (no máximo 4, regra G407), fica pronto e atira. O scouter toca **ATIROU** quando o robô começa a atirar e depois informa **quantas coletou** (já vem 4) e **quantas acertou**.
+Um **ciclo** = o robô coleta POLLEN (no máximo 4, regra G407), fica pronto e atira. O scouter toca **ATIROU** quando o robô começa a atirar e depois informa **quantos coletou** (já vem 4) e **quantos acertou**.
 
 | Campo do ciclo | Significado                                                                    |
 | -------------- | ------------------------------------------------------------------------------ |
 | `at`           | segundos desde o "Começou" da fase até o ATIROU                                |
 | `seconds`      | **tempo de ciclo**: do fim do ciclo anterior (ou do "Começou") até o ATIROU    |
-| `collected`    | peças coletadas = tiros (1 a 4)                                                |
+| `collected`    | POLLEN coletados = tiros (1 a 4)                                               |
 | `hits`         | acertos no CELL (0 a `collected`)                                              |
 | `preload`      | `true` só no 1º ciclo do AUTO (o robô já começa carregado; fica fora da média) |
 
@@ -129,21 +129,41 @@ O scouter não anota erros: **erros = `totalShots − totalHits`** e **precisão
 
 ## Relatório de pit (`pitReports`)
 
-| Campo            | Tipo                                                             |
-| ---------------- | ---------------------------------------------------------------- |
-| `teamNumber`     | número                                                           |
-| `teamName`       | texto                                                            |
-| `drivetrain`     | `"mecanum"` \| `"tank"` \| `"swerve"` \| `"other"`               |
-| `launchesCell`   | booleano                                                         |
-| `launchRange`    | `"close"` \| `"far"` \| `"both"` \| `"none"` (não lança)         |
-| `placesNectar`   | booleano                                                         |
-| `intake`         | lista: `"floor"`, `"flower"`, `"garden"`                         |
-| `auto.actions`   | lista: `"leave"`, `"preload"`, `"cycles"`, `"park"`              |
-| `auto.cycles`    | número estimado                                                  |
-| `auto.startSide` | texto                                                            |
-| `strategy`       | texto (até 500)                                                  |
-| `hasPhoto`       | booleano — se existe foto em `pitPhotos` com o mesmo id          |
-| Metadados        | `schemaVersion`, `createdAt`, `syncedAt`, `scouter`, `createdBy` |
+`schemaVersion: 2`
+
+| Seção     | Campo                                                            | Tipo                                                             |
+| --------- | ---------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Equipe    | `teamNumber`                                                     | número (obrigatório)                                             |
+|           | `teamName`                                                       | texto (até 60)                                                   |
+| Robô      | `drivetrain`                                                     | `"mecanum"` \| `"tank"` \| `"swerve"` \| `"other"` (obrigatório) |
+|           | `shooterShape`                                                   | `"c"` \| `"s"` \| `"other"` \| `"none"` (obrigatório)            |
+| FLOWER    | `flowerPlaces`                                                   | lista: `"nectar"`, `"pollen"` (pode ser vazia)                   |
+|           | `removesFromFlower`                                              | booleano — tira POLLEN ou NECTAR da FLOWER                       |
+| AUTO      | `autoNotes`                                                      | texto livre (até 500)                                            |
+| Final     | `strategy`                                                       | texto (até 500)                                                  |
+|           | `hasPhoto`                                                       | booleano — se existe foto em `pitPhotos` com o mesmo id          |
+| Metadados | `schemaVersion`, `createdAt`, `syncedAt`, `scouter`, `createdBy` | —                                                                |
+
+Exemplo:
+
+```json
+{
+  "schemaVersion": 2,
+  "teamNumber": 16053,
+  "teamName": "Clusters",
+  "drivetrain": "mecanum",
+  "shooterShape": "c",
+  "flowerPlaces": ["nectar"],
+  "removesFromFlower": false,
+  "autoNotes": "sai da área, lança o preload e faz 2 ciclos pelo lado da HIVE",
+  "strategy": "foca em TIPS",
+  "hasPhoto": true,
+  "scouter": "Ana",
+  "createdAt": "2026-12-05T10:12:00Z",
+  "syncedAt": "2026-12-05T10:20:31Z",
+  "createdBy": "uid-do-aparelho"
+}
+```
 
 ## Foto do pit (`pitPhotos`)
 
@@ -168,18 +188,17 @@ Os testes montam os relatórios com as mesmas funções do app (`toMatchDocument
 
 ## Limites validados pelas regras
 
-| Campo                    | Limite                             |
-| ------------------------ | ---------------------------------- |
-| `matchNumber`            | 1 a 999                            |
-| `teamNumber`             | 1 a 99999                          |
-| Contadores do final      | 0 a 99, inteiros                   |
-| Ciclos por fase          | até 30, com no máximo 4 tiros cada |
-| `avgCycleSeconds`        | `null` ou de 0 a 600               |
-| `auto.cycles` (pit)      | 0 a 20                             |
-| `notes`, `strategy`      | até 500 caracteres                 |
-| `teamName`               | até 60 caracteres                  |
-| `scouter`                | até 40 caracteres                  |
-| Foto (`pitPhotos.image`) | até 400.000 caracteres (~300 KB)   |
+| Campo                            | Limite                             |
+| -------------------------------- | ---------------------------------- |
+| `matchNumber`                    | 1 a 999                            |
+| `teamNumber`                     | 1 a 99999                          |
+| Contadores do final              | 0 a 99, inteiros                   |
+| Ciclos por fase                  | até 30, com no máximo 4 tiros cada |
+| `avgCycleSeconds`                | `null` ou de 0 a 600               |
+| `notes`, `strategy`, `autoNotes` | até 500 caracteres                 |
+| `teamName`                       | até 60 caracteres                  |
+| `scouter`                        | até 40 caracteres                  |
+| Foto (`pitPhotos.image`)         | até 400.000 caracteres (~300 KB)   |
 
 Qualquer campo a mais, a menos ou com tipo errado é recusado.
 

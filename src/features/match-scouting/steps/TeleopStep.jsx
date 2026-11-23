@@ -10,7 +10,7 @@ export default function TeleopStep({ draft, updateSection }) {
     <div className="stack">
       <CycleTracker phaseLabel="TELEOP" timer={teleop.timer} onChange={(timer) => set({ timer })} />
       <ChipGroup
-        label="De onde ele pega as peças?"
+        label="De onde ele pega o POLLEN?"
         value={teleop.intake}
         options={INTAKE_OPTIONS}
         onChange={(intake) => set({ intake })}

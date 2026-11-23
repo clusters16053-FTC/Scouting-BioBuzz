@@ -132,10 +132,10 @@ function pitReport(uid, overrides = {}) {
     teamNumber: 16053,
     teamName: 'Clusters',
     drivetrain: 'mecanum',
-    launchesCell: true,
-    launchRange: 'far',
-    intake: ['floor'],
-    auto: { actions: ['leave', 'cycles'], cycles: 3, startSide: 'perto da HIVE' },
+    shooterShape: 'c',
+    flowerPlaces: ['nectar', 'pollen'],
+    removesFromFlower: true,
+    autoNotes: 'sai da área, lança o preload e faz 2 ciclos',
     strategy: 'foca em TIPS',
     photo: 'data:image/jpeg;base64,abc',
   }
@@ -312,8 +312,13 @@ describe('relatórios de pit', () => {
     await assertSucceeds(save(pitReport('membro')))
   })
 
-  it('aceita robô que não lança no CELL', async () => {
-    const draft = { ...createEmptyPitDraft(), teamNumber: 1234, drivetrain: 'tank' }
+  it('aceita o mínimo obrigatório (sem FLOWER, sem textos, sem foto)', async () => {
+    const draft = {
+      ...createEmptyPitDraft(),
+      teamNumber: 1234,
+      drivetrain: 'tank',
+      shooterShape: 'none',
+    }
     const data = toPitDocument(draft, {
       uid: 'membro',
       scouter: 'Ana',
@@ -328,16 +333,17 @@ describe('relatórios de pit', () => {
 
   it.each([
     ['tração inválida', { drivetrain: 'pernas' }],
-    ['alcance inválido', { launchRange: 'lua' }],
+    ['shooter inválido', { shooterShape: 'z' }],
+    ['shooter vazio', { shooterShape: null }],
+    ['peça desconhecida na FLOWER', { flowerPlaces: ['mel'] }],
+    ['"tira da FLOWER" como texto', { removesFromFlower: 'sim' }],
+    ['AUTO longo demais', { autoNotes: 'x'.repeat(501) }],
     ['nome longo demais', { teamName: 'x'.repeat(61) }],
+    ['versão antiga do pit', { schemaVersion: 1 }],
+    ['campo do formato antigo', { launchesCell: true }],
     ['campo extra', { photo: 'data:image/jpeg;base64,abc' }],
   ])('barra %s', async (_, override) => {
     await assertFails(save({ ...pitReport('membro'), ...override }))
-  })
-
-  it('barra ciclos demais no AUTO', async () => {
-    const data = pitReport('membro')
-    await assertFails(save({ ...data, auto: { ...data.auto, cycles: 21 } }))
   })
 })
 

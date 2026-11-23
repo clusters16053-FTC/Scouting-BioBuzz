@@ -22,7 +22,7 @@ export default function EndgameStep({ draft, updateSection }) {
         onChange={(pollenFlower) => set({ pollenFlower })}
       />
       <Counter
-        label="Peças no GARDEN"
+        label="POLLEN e NECTAR no GARDEN"
         value={endgame.garden}
         max={LIMITS.maxCount}
         onChange={(garden) => set({ garden })}

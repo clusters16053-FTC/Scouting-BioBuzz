@@ -1,7 +1,7 @@
 /**
  * Lógica dos ciclos de lançamento, sem tela e sem Firebase.
  *
- * Um CICLO: o robô coleta peças (máx. 4, regra G407), fica pronto e atira.
+ * Um CICLO: o robô coleta POLLEN (máx. 4, regra G407), fica pronto e atira.
  * O scouter marca:
  *   1. "ATIROU"  → momento em que o robô começou a atirar
  *   2. coletou (1–4) e acertou (0–coletou) → fecha o ciclo
@@ -38,7 +38,7 @@ export function markFired(timer, now) {
   return { ...timer, pending: { firedAt: now, collected: MAX_PER_CYCLE } }
 }
 
-/** Troca quantas peças ele coletou neste ciclo. */
+/** Troca quantos POLLEN ele coletou neste ciclo. */
 export function setCollected(timer, collected) {
   if (!timer.pending) return timer
   const value = clamp(collected, 1, MAX_PER_CYCLE)

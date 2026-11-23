@@ -142,29 +142,20 @@ service cloud.firestore {
 
     // ---------- Relatório de pit ----------
 
-    function validPitAuto(auto) {
-      return auto is map
-        && hasExactly(auto, ['actions', 'cycles', 'startSide'])
-        && isListOf(auto.actions, ['leave', 'preload', 'cycles', 'park'])
-        && isIntBetween(auto.cycles, 0, 20)
-        && isText(auto.startSide, 40);
-    }
-
     function validPitReport(report) {
       return hasExactly(report, [
-          'schemaVersion', 'teamNumber', 'teamName', 'drivetrain', 'launchesCell',
-          'launchRange', 'placesNectar', 'intake', 'auto', 'strategy', 'hasPhoto',
+          'schemaVersion', 'teamNumber', 'teamName', 'drivetrain', 'shooterShape',
+          'flowerPlaces', 'removesFromFlower', 'autoNotes', 'strategy', 'hasPhoto',
           'scouter', 'createdAt', 'createdBy', 'syncedAt'
         ])
-        && validMeta(report, 1)
+        && validMeta(report, 2)
         && isIntBetween(report.teamNumber, 1, 99999)
         && isText(report.teamName, 60)
         && report.drivetrain in ['mecanum', 'tank', 'swerve', 'other']
-        && report.launchesCell is bool
-        && report.launchRange in ['none', 'close', 'far', 'both']
-        && report.placesNectar is bool
-        && isListOf(report.intake, ['floor', 'flower', 'garden'])
-        && validPitAuto(report.auto)
+        && report.shooterShape in ['c', 's', 'other', 'none']
+        && isListOf(report.flowerPlaces, ['nectar', 'pollen'])
+        && report.removesFromFlower is bool
+        && isText(report.autoNotes, 500)
         && isText(report.strategy, 500)
         && report.hasPhoto is bool;
     }

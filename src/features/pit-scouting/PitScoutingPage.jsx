@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import ChipGroup from '../../components/ChipGroup.jsx'
 import ConfirmButton from '../../components/ConfirmButton.jsx'
-import Counter from '../../components/Counter.jsx'
 import NumberField from '../../components/NumberField.jsx'
 import Segmented from '../../components/Segmented.jsx'
 import TextArea from '../../components/TextArea.jsx'
@@ -10,11 +9,11 @@ import { useSession } from '../access/session-context.js'
 import RequireEvent from '../event/RequireEvent.jsx'
 import PhotoField from './PhotoField.jsx'
 import {
-  AUTO_ACTION_OPTIONS,
   DRIVETRAIN_OPTIONS,
-  LAUNCH_RANGE_OPTIONS,
-  PIT_INTAKE_OPTIONS,
+  FLOWER_PIECE_OPTIONS,
+  PIT_DRAFT_VERSION,
   PIT_LIMITS,
+  SHOOTER_SHAPE_OPTIONS,
   createEmptyPitDraft,
   validatePit,
 } from './pit-schema.js'
@@ -29,9 +28,14 @@ function PitScouting({ eventId }) {
   const draft = pitDraftStore.useValue()
   const last = lastPitStore.useValue()
 
+  // Rascunho de uma versão antiga do formulário: descarta.
+  const outdated = draft && draft.draftVersion !== PIT_DRAFT_VERSION
+
   useEffect(() => {
-    if (!draft && !last) pitDraftStore.set(createEmptyPitDraft())
-  }, [draft, last])
+    if (outdated || (!draft && !last)) pitDraftStore.set(createEmptyPitDraft())
+  }, [draft, last, outdated])
+
+  if (outdated) return null
 
   if (!draft) {
     if (!last) return null
@@ -65,8 +69,6 @@ function PitForm({ eventId, draft }) {
   const errors = showErrors ? validatePit(draft) : []
 
   const update = (patch) => pitDraftStore.set((current) => ({ ...current, ...patch }))
-  const updateAuto = (patch) =>
-    pitDraftStore.set((current) => ({ ...current, auto: { ...current.auto, ...patch } }))
 
   function handleSave() {
     const found = validatePit(draft)
@@ -124,57 +126,38 @@ function PitForm({ eventId, draft }) {
           options={DRIVETRAIN_OPTIONS}
           onChange={(drivetrain) => update({ drivetrain })}
         />
-        <Toggle
-          label="Lança no CELL?"
-          value={draft.launchesCell}
-          onChange={(launchesCell) => update({ launchesCell })}
+        <Segmented
+          label="Formato do shooter"
+          value={draft.shooterShape}
+          options={SHOOTER_SHAPE_OPTIONS}
+          onChange={(shooterShape) => update({ shooterShape })}
         />
-        {draft.launchesCell && (
-          <Segmented
-            label="De onde lança?"
-            value={draft.launchRange}
-            options={LAUNCH_RANGE_OPTIONS}
-            onChange={(launchRange) => update({ launchRange })}
-          />
-        )}
-        <Toggle
-          label="Coloca NECTAR na FLOWER?"
-          value={draft.placesNectar}
-          onChange={(placesNectar) => update({ placesNectar })}
-        />
+      </fieldset>
+
+      <fieldset className="card stack">
+        <legend className="section-title">FLOWER</legend>
         <ChipGroup
-          label="De onde pega as peças?"
-          value={draft.intake}
-          options={PIT_INTAKE_OPTIONS}
-          onChange={(intake) => update({ intake })}
+          label="O que coloca na FLOWER?"
+          value={draft.flowerPlaces}
+          options={FLOWER_PIECE_OPTIONS}
+          onChange={(flowerPlaces) => update({ flowerPlaces })}
+        />
+        <Toggle
+          label="Tira POLLEN ou NECTAR da FLOWER?"
+          value={draft.removesFromFlower}
+          onChange={(removesFromFlower) => update({ removesFromFlower })}
         />
       </fieldset>
 
       <fieldset className="card stack">
         <legend className="section-title">AUTO</legend>
-        <ChipGroup
-          label="O que faz no AUTO?"
-          value={draft.auto.actions}
-          options={AUTO_ACTION_OPTIONS}
-          onChange={(actions) => updateAuto({ actions })}
+        <TextArea
+          label="O que faz no autônomo"
+          value={draft.autoNotes}
+          maxLength={PIT_LIMITS.maxAutoNotes}
+          placeholder="Ex.: sai da área, lança o preload e faz 2 ciclos pelo lado da HIVE"
+          onChange={(autoNotes) => update({ autoNotes })}
         />
-        {draft.auto.actions.includes('cycles') && (
-          <Counter
-            label="Quantos ciclos (estimado)"
-            value={draft.auto.cycles}
-            max={PIT_LIMITS.maxCycles}
-            onChange={(cycles) => updateAuto({ cycles })}
-          />
-        )}
-        <label className="field">
-          <span className="field-label">Onde começa</span>
-          <input
-            value={draft.auto.startSide}
-            maxLength={PIT_LIMITS.maxStartSide}
-            onChange={(e) => updateAuto({ startSide: e.target.value })}
-            placeholder="Ex.: perto da HIVE"
-          />
-        </label>
       </fieldset>
 
       <fieldset className="card stack">
