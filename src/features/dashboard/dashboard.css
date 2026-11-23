@@ -1,0 +1,948 @@
+/*
+ * Estilos da dashboard. Carregado só junto com ela.
+ *
+ * Cores de dados (validadas com o validador de paleta do guia de visualização,
+ * no fundo --ink-900, para daltonismo e contraste):
+ *   AUTO   #8280E6  |  TELEOP  #E5517B
+ *   Destaque (nossa equipe) #E5517B  |  demais equipes #5C5B8F
+ * O cinza tem contraste abaixo de 3:1 de propósito (é o "apagado" da ênfase);
+ * por isso toda barra tem o valor escrito e existe a tabela equivalente.
+ */
+.dashboard {
+  --series-auto: #8280e6;
+  --series-teleop: #e5517b;
+  --emphasis: #e5517b;
+  --muted-mark: #5c5b8f;
+  --chart-surface: var(--ink-900);
+  --grid: var(--line-soft);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.dashboard__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.dashboard__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.dashboard__loading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--text-2);
+}
+
+.sync-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+  font-size: 0.9rem;
+  color: var(--text-2);
+}
+
+.sync-status--cache {
+  color: #ffd27a;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--good);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 25%, transparent);
+}
+
+.dashboard-tabs {
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border-radius: var(--r-md);
+  background: var(--ink-900);
+}
+
+.dashboard-tabs a {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--r-sm);
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.dashboard-tabs a.active {
+  color: var(--ink-950);
+  background: var(--lavender);
+}
+
+.data-note {
+  font-size: 0.88rem;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px dashed var(--line);
+  border-radius: var(--r-lg);
+}
+
+/* ---------- Painéis ---------- */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--r-lg);
+  background: var(--chart-surface);
+}
+
+.panel__header p {
+  margin-top: var(--space-1);
+  font-size: 0.92rem;
+  max-width: 70ch;
+}
+
+.panel-grid {
+  display: grid;
+  gap: var(--space-5);
+}
+
+/* ---------- Números em destaque ---------- */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.stat-tile {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--r-md);
+  background: var(--ink-900);
+}
+
+.stat-tile dt {
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+
+.stat-tile dd {
+  margin: 0;
+}
+
+/* Números grandes com algarismos proporcionais (os tabulares ficam "frouxos" grandes). */
+.stat-tile__value {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  font-stretch: var(--narrow);
+  line-height: 1.1;
+}
+
+.stat-tile__detail {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.82rem;
+  color: var(--text-3);
+}
+
+.stat-tile--emphasis {
+  /* No celular, o destaque vem primeiro e ocupa a linha toda. */
+  grid-column: 1 / -1;
+  order: -1;
+  background:
+    linear-gradient(var(--ink-900), var(--ink-900)) padding-box,
+    var(--brand-gradient) border-box;
+  border: 1px solid transparent;
+}
+
+/* Duas classes para vencer a regra geral de .stat-cells (4 colunas) do global.css. */
+.stat-cells.stat-cells--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* ---------- Balão de detalhes (tooltip) ---------- */
+.chart-tip {
+  position: absolute;
+  z-index: 3;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 140px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--ink-950);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 35%);
+  pointer-events: none;
+}
+
+.chart-tip__title {
+  font-size: 0.8rem;
+  color: var(--text-3);
+}
+
+.chart-tip__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+
+.chart-tip__row strong {
+  min-width: 3ch;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.line-key {
+  width: 12px;
+  height: 2px;
+  border-radius: 2px;
+}
+
+.line-key--auto {
+  background: var(--series-auto);
+}
+
+.line-key--teleop {
+  background: var(--series-teleop);
+}
+
+/* ---------- Barras ranqueadas ---------- */
+.rank-bars {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rank-bar {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(96px, 30%) 1fr;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 40px;
+  border-radius: var(--r-sm);
+}
+
+.rank-bar__label {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.rank-bar__label strong {
+  font-stretch: var(--narrow);
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.rank-bar__label span {
+  overflow: hidden;
+  font-size: 0.78rem;
+  color: var(--text-3);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rank-bar__track {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.rank-bar__fill {
+  height: 16px;
+  border-radius: 0 4px 4px 0;
+  background: var(--muted-mark);
+}
+
+.rank-bar__value {
+  font-weight: 600;
+  font-stretch: 87.5%;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+}
+
+.rank-bar.is-highlight .rank-bar__fill {
+  background: var(--emphasis);
+}
+
+.rank-bar.is-highlight .rank-bar__label strong,
+.rank-bar.is-highlight .rank-bar__value {
+  color: var(--text);
+}
+
+.rank-bar:hover .rank-bar__fill,
+.rank-bar:focus-visible .rank-bar__fill {
+  filter: brightness(1.25);
+}
+
+.rank-bar .chart-tip {
+  top: 100%;
+  left: 30%;
+}
+
+.rank-bar:hover .chart-tip,
+.rank-bar:focus-visible .chart-tip {
+  display: flex;
+}
+
+/* ---------- Colunas por partida ---------- */
+.match-columns {
+  margin: 0;
+}
+
+.chart-legend {
+  display: flex;
+  gap: var(--space-4);
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  list-style: none;
+  font-size: 0.88rem;
+  color: var(--text-2);
+}
+
+.chart-legend li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.swatch--auto {
+  background: var(--series-auto);
+}
+
+.swatch--teleop {
+  background: var(--series-teleop);
+}
+
+.match-columns__plot {
+  display: grid;
+  grid-template-columns: 2.5ch 1fr;
+  gap: var(--space-2);
+}
+
+.match-columns__axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 180px;
+  font-size: 0.75rem;
+  color: var(--text-3);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  transform: translateY(-0.5em);
+}
+
+.match-columns__area {
+  position: relative;
+  min-width: 0;
+}
+
+.match-columns__grid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--grid);
+}
+
+.match-columns__bars {
+  position: relative;
+  display: flex;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+}
+
+.match-column {
+  position: relative;
+  display: flex;
+  flex: 1 0 24px;
+  flex-direction: column;
+  align-items: center;
+  outline-offset: 0;
+}
+
+.match-column__stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+  height: 180px;
+}
+
+/* Coluna com no máximo 22px e 2px de respiro entre AUTO e TELEOP. */
+.match-column__seg {
+  width: min(22px, 70%);
+}
+
+.match-column__seg--auto {
+  background: var(--series-auto);
+}
+
+.match-column__seg--teleop {
+  margin-bottom: 2px;
+  border-radius: 4px 4px 0 0;
+  background: var(--series-teleop);
+}
+
+.match-column__seg--teleop[style*='height: 0%'] {
+  margin-bottom: 0;
+}
+
+.match-column__absent {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 0.7rem;
+  color: var(--text-3);
+}
+
+.match-column__x {
+  margin-top: var(--space-1);
+  font-size: 0.75rem;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.match-column .chart-tip {
+  bottom: calc(100% - 40px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.match-column:hover .chart-tip,
+.match-column:focus-visible .chart-tip {
+  display: flex;
+}
+
+.match-column:hover .match-column__seg,
+.match-column:focus-visible .match-column__seg {
+  filter: brightness(1.2);
+}
+
+.match-columns figcaption {
+  margin-top: var(--space-1);
+  padding-left: calc(2.5ch + var(--space-2));
+  font-size: 0.78rem;
+}
+
+/* ---------- Medidores ---------- */
+.meter-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.meter {
+  display: grid;
+  grid-template-columns: minmax(110px, 38%) 1fr;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.meter dt {
+  font-size: 0.92rem;
+}
+
+.meter__hint {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--text-3);
+}
+
+.meter dd {
+  display: grid;
+  grid-template-columns: 1fr 4ch;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.meter__track {
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--series-auto) 22%, var(--ink-900));
+  overflow: hidden;
+}
+
+.meter__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--series-auto);
+}
+
+.meter__value {
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Tabelas ---------- */
+.table-scroll {
+  overflow-x: auto;
+  margin: 0 calc(-1 * var(--space-4));
+  padding: 0 var(--space-4);
+}
+
+.team-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.team-table th,
+.team-table td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--line-soft);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.team-table thead th {
+  font-weight: 500;
+  color: var(--text-3);
+  vertical-align: bottom;
+}
+
+.team-table .team-table__team {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  text-align: left;
+  background: var(--chart-surface);
+}
+
+.team-table__team a {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.team-table__team strong {
+  font-stretch: var(--narrow);
+  font-size: 1.05rem;
+}
+
+.team-table__team span {
+  max-width: 14ch;
+  overflow: hidden;
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--text-3);
+  text-overflow: ellipsis;
+}
+
+.team-table tbody tr:hover td,
+.team-table tbody tr:hover th {
+  background: var(--ink-800);
+}
+
+.team-table tr.is-own th:first-child {
+  box-shadow: inset 3px 0 0 var(--emphasis);
+}
+
+.team-table tr.is-thin td {
+  color: var(--text-3);
+}
+
+.team-table--compact th:first-child {
+  text-align: left;
+}
+
+.sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0;
+  border: none;
+  font: inherit;
+  color: inherit;
+  background: none;
+  cursor: pointer;
+}
+
+.sort-button.is-active {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.sort-button__arrow {
+  width: 1ch;
+  font-size: 0.65rem;
+}
+
+/* ---------- Ficha da equipe ---------- */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+  color: var(--text-2);
+}
+
+.team-hero__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.team-hero__number {
+  font-size: 3.5rem;
+  font-weight: 800;
+  font-stretch: var(--narrow);
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.team-hero__name {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.fact-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-3) var(--space-4);
+  margin: 0;
+}
+
+.fact-list dt {
+  font-size: 0.82rem;
+  color: var(--text-3);
+}
+
+.fact-list dd {
+  margin: 0;
+  font-weight: 500;
+}
+
+.fact-list__wide {
+  grid-column: 1 / -1;
+}
+
+.pit-panel__body {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.pit-photo {
+  margin: 0;
+}
+
+.pit-photo img {
+  display: block;
+  width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+  border-radius: var(--r-md);
+}
+
+.pit-photo__loading {
+  display: grid;
+  place-items: center;
+  height: 160px;
+  border-radius: var(--r-md);
+  color: var(--text-3);
+  background: var(--ink-800);
+}
+
+.notes {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.notes li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.notes__match {
+  grid-row: span 2;
+  font-weight: 600;
+  font-stretch: 87.5%;
+  color: var(--text-2);
+}
+
+.notes .muted {
+  font-size: 0.8rem;
+}
+
+/* ---------- Preparar partida ---------- */
+.prep-intro {
+  max-width: 70ch;
+}
+
+.prep-verdict {
+  padding: var(--space-3) var(--space-4);
+  border-left: 3px solid var(--lavender);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-weight: 600;
+  background: var(--ink-900);
+}
+
+.prep-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+.alliance {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-top: 4px solid var(--alliance-color);
+  border-radius: var(--r-lg);
+  background: var(--ink-900);
+}
+
+.alliance--red {
+  --alliance-color: var(--alliance-red);
+}
+
+.alliance--blue {
+  --alliance-color: var(--alliance-blue);
+}
+
+.alliance__pickers {
+  display: grid;
+  /* minmax(0, 1fr): sem isso, um nome de equipe comprido estica a coluna e vaza da tela. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.alliance select {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--touch);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  font: inherit;
+  color: var(--text);
+  background: var(--ink-950);
+}
+
+.alliance__numbers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.alliance__numbers div {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--r-md);
+  background: var(--ink-800);
+}
+
+.alliance__numbers dt {
+  font-size: 0.82rem;
+  color: var(--text-2);
+}
+
+.alliance__numbers dd {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  font-stretch: var(--narrow);
+  line-height: 1.1;
+}
+
+.swarm__label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+  font-size: 0.92rem;
+}
+
+.swarm__track {
+  display: block;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--ink-700);
+  overflow: hidden;
+}
+
+.swarm__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--series-auto);
+}
+
+.swarm__fill.is-met {
+  background: var(--good);
+}
+
+.swarm__verdict {
+  margin-top: var(--space-2);
+  font-size: 0.88rem;
+  color: var(--text-2);
+}
+
+.swarm__verdict.is-met {
+  color: var(--good);
+}
+
+.alliance__teams {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.alliance__teams li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.alliance__team {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.alliance__team strong {
+  font-size: 1.15rem;
+  font-stretch: var(--narrow);
+}
+
+.alliance__team .muted {
+  font-size: 0.8rem;
+}
+
+.alliance__stats {
+  display: flex;
+  gap: var(--space-4);
+  margin: 0;
+  text-align: right;
+}
+
+.alliance__stats dt {
+  font-size: 0.75rem;
+  color: var(--text-3);
+}
+
+.alliance__stats dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.alerts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+  color: var(--text-2);
+}
+
+.alerts li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.alerts .icon {
+  margin-top: 2px;
+  color: #ffd27a;
+}
+
+.prep-clear {
+  align-self: flex-start;
+}
+
+/* ---------- Notebook ---------- */
+@media (min-width: 720px) {
+  .stat-row {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+
+  .stat-tile--emphasis {
+    grid-column: auto;
+    order: 0;
+  }
+
+  .rank-bar {
+    grid-template-columns: 180px 1fr;
+  }
+
+  .rank-bar .chart-tip {
+    left: 180px;
+  }
+
+  .team-table th,
+  .team-table td {
+    padding: var(--space-2);
+  }
+
+  .panel {
+    padding: var(--space-5);
+  }
+
+  .table-scroll {
+    margin: 0;
+    padding: 0;
+  }
+
+  .pit-panel__body {
+    grid-template-columns: minmax(220px, 320px) 1fr;
+    align-items: start;
+  }
+}
+
+@media (min-width: 960px) {
+  .panel-grid,
+  .prep-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

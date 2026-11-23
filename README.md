@@ -70,7 +70,7 @@ scouting-biobuzz/
 │   │   ├── home/
 │   │   ├── match-scouting/
 │   │   ├── pit-scouting/
-│   │   └── dashboard/
+│   │   └── dashboard/    # Ranking, ficha da equipe, preparar partida e os cálculos
 │   ├── lib/              # Firebase, caminhos do banco, IDs, compressão de imagem
 │   ├── styles/           # CSS global e tokens de design
 │   └── main.jsx          # Ponto de entrada
@@ -91,6 +91,7 @@ scouting-biobuzz/
 - [Arquitetura](docs/arquitetura.md) — como as peças se conectam e o fluxo offline
 - [Modelo de dados](docs/modelo-de-dados.md) — campos coletados e estrutura no Firestore
 - [Firebase](docs/firebase.md) — criar o projeto, segurança e limites grátis
+- [Dashboard](docs/dashboard.md) — o que cada número significa e o que não é calculado
 - [Jogo BIOBUZZ](docs/jogo-biobuzz.md) — resumo das regras que importam pro scouting
 - [Como contribuir](CONTRIBUTING.md) — branches, commits e pull requests
 
@@ -101,6 +102,6 @@ scouting-biobuzz/
 - [x] **3. Firebase** — banco, regras de segurança e entrada com código da equipe
 - [x] **4. Formulários** — scouting de partida (por fases) e de pit (com foto)
 - [ ] **5. Offline (PWA)** — fila de pendentes e indicador de sincronização
-- [ ] **6. Dashboard** — ranking, médias e comparação de equipes
+- [x] **6. Dashboard** — ranking, ficha da equipe e preparação de partida
 - [ ] **7. Teste de campo** — modo avião, vários aparelhos, conflitos
 - [ ] **8. Polimento** — usabilidade e ajustes finais

@@ -3,7 +3,10 @@ import Layout from './Layout.jsx'
 import HomePage from '../features/home/HomePage.jsx'
 import MatchScoutingPage from '../features/match-scouting/MatchScoutingPage.jsx'
 import PitScoutingPage from '../features/pit-scouting/PitScoutingPage.jsx'
-import DashboardPage from '../features/dashboard/DashboardPage.jsx'
+import DashboardLayout from '../features/dashboard/DashboardLayout.jsx'
+import RankingPage from '../features/dashboard/RankingPage.jsx'
+import TeamPage from '../features/dashboard/TeamPage.jsx'
+import MatchPrepPage from '../features/dashboard/MatchPrepPage.jsx'
 import NotFoundPage from '../features/home/NotFoundPage.jsx'
 import SessionProvider from '../features/access/SessionProvider.jsx'
 import AccessGate from '../features/access/AccessGate.jsx'
@@ -24,7 +27,11 @@ export default function App() {
               <Route index element={<HomePage />} />
               <Route path="partida" element={<MatchScoutingPage />} />
               <Route path="pit" element={<PitScoutingPage />} />
-              <Route path="dashboard" element={<DashboardPage />} />
+              <Route path="dashboard" element={<DashboardLayout />}>
+                <Route index element={<RankingPage />} />
+                <Route path="equipe/:teamNumber" element={<TeamPage />} />
+                <Route path="partida" element={<MatchPrepPage />} />
+              </Route>
               <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Routes>

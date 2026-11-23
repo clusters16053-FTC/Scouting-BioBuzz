@@ -44,6 +44,13 @@ const PATHS = {
   ),
   check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
   play: <path d="M8 5.5v13l10-6.5z" />,
+  back: <path d="M14.5 5.5 8 12l6.5 6.5" />,
+  alert: (
+    <>
+      <path d="M12 4 3 19.5h18z" />
+      <path d="M12 10v4.5M12 17.2v.3" />
+    </>
+  ),
   close: <path d="M6 6l12 12M18 6 6 18" />,
   swap: (
     <>
