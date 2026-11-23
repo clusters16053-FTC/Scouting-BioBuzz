@@ -4,13 +4,22 @@
  *
  * Se mudar algum campo aqui, atualize também:
  *   - firestore.rules (validMatchReport)
- *   - tests/firestore.rules.test.js
+ *   - tests/rules/firestore.rules.test.js
  *   - docs/modelo-de-dados.md
  * e aumente MATCH_SCHEMA_VERSION se o significado de um campo mudar.
  */
 import { createId } from '../../lib/ids.js'
+import { createPhaseTimer, summarizeCycles, toStoredCycle } from './cycles/cycle-math.js'
 
-export const MATCH_SCHEMA_VERSION = 1
+/**
+ * Versão do formato salvo no banco.
+ * v1: contadores de acertos/erros no CELL
+ * v2: ciclos (tempo, coletou, acertou) + totais calculados
+ */
+export const MATCH_SCHEMA_VERSION = 2
+
+/** Versão do rascunho local. Rascunhos antigos são descartados ao abrir o formulário. */
+export const MATCH_DRAFT_VERSION = 2
 
 export const LIMITS = Object.freeze({
   maxMatchNumber: 999,
@@ -73,8 +82,8 @@ export function isStepAvailable(stepId, draft) {
   return !(draft.noShow && NO_SHOW_SKIPPED.has(stepId))
 }
 
-const emptyAuto = () => ({ leave: false, made: 0, missed: 0, park: false })
-const emptyTeleop = () => ({ made: 0, missed: 0, intake: [] })
+const emptyAuto = () => ({ leave: false, park: false, timer: createPhaseTimer() })
+const emptyTeleop = () => ({ timer: createPhaseTimer(), intake: [] })
 const emptyEndgame = () => ({ nectarFlower: 0, pollenFlower: 0, garden: 0, park: false })
 
 /**
@@ -84,6 +93,7 @@ const emptyEndgame = () => ({ nectarFlower: 0, pollenFlower: 0, garden: 0, park:
 export function createEmptyMatchDraft({ matchNumber = 0, alliance = null, station = null } = {}) {
   return {
     id: createId(),
+    draftVersion: MATCH_DRAFT_VERSION,
     step: 'pre',
     matchNumber,
     alliance,
@@ -111,9 +121,27 @@ export function validatePreMatch(draft) {
   return errors
 }
 
+/**
+ * Ciclos + totais de uma fase, no formato do banco.
+ * Os totais vão junto porque as regras do Firestore não conseguem percorrer a lista
+ * de ciclos — mas conseguem validar estes números.
+ */
+function toCyclePhase(timer) {
+  const summary = summarizeCycles(timer.cycles)
+  return {
+    cycles: timer.cycles.map(toStoredCycle),
+    totalCycles: summary.totalCycles,
+    totalShots: summary.totalShots,
+    totalHits: summary.totalHits,
+    avgCycleSeconds: summary.avgCycleSeconds,
+  }
+}
+
 /** Converte o rascunho no documento do Firestore (formato de docs/modelo-de-dados.md). */
 export function toMatchDocument(draft, { uid, scouter, syncedAt }) {
   const noShow = draft.noShow
+  const auto = noShow ? emptyAuto() : draft.auto
+  const teleop = noShow ? emptyTeleop() : draft.teleop
   return {
     schemaVersion: MATCH_SCHEMA_VERSION,
     matchNumber: draft.matchNumber,
@@ -123,8 +151,8 @@ export function toMatchDocument(draft, { uid, scouter, syncedAt }) {
     scouter,
     noShow,
     // Robô ausente: zera as fases para não sujar as médias com dados esquecidos.
-    auto: noShow ? emptyAuto() : draft.auto,
-    teleop: noShow ? emptyTeleop() : draft.teleop,
+    auto: { leave: auto.leave, park: auto.park, ...toCyclePhase(auto.timer) },
+    teleop: { ...toCyclePhase(teleop.timer), intake: teleop.intake },
     endgame: noShow ? emptyEndgame() : draft.endgame,
     defensePlayed: noShow ? 'none' : draft.defensePlayed,
     defenseReceived: noShow ? 'none' : draft.defenseReceived,

@@ -1,6 +1,6 @@
 import ChipGroup from '../../../components/ChipGroup.jsx'
-import Counter from '../../../components/Counter.jsx'
-import { INTAKE_OPTIONS, LIMITS } from '../match-schema.js'
+import CycleTracker from '../cycles/CycleTracker.jsx'
+import { INTAKE_OPTIONS } from '../match-schema.js'
 
 export default function TeleopStep({ draft, updateSection }) {
   const teleop = draft.teleop
@@ -8,23 +8,7 @@ export default function TeleopStep({ draft, updateSection }) {
 
   return (
     <div className="stack">
-      <p className="step-hint">2 minutos com piloto. Conte cada lançamento no CELL.</p>
-      <div className="counter-pair">
-        <Counter
-          label="Acertou no CELL"
-          tone="good"
-          value={teleop.made}
-          max={LIMITS.maxCount}
-          onChange={(made) => set({ made })}
-        />
-        <Counter
-          label="Errou"
-          tone="bad"
-          value={teleop.missed}
-          max={LIMITS.maxCount}
-          onChange={(missed) => set({ missed })}
-        />
-      </div>
+      <CycleTracker phaseLabel="TELEOP" timer={teleop.timer} onChange={(timer) => set({ timer })} />
       <ChipGroup
         label="De onde ele pega as peças?"
         value={teleop.intake}

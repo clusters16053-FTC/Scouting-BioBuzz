@@ -1,7 +1,7 @@
 {
   "name": "scouting-biobuzz",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Sistema de scouting da equipe Clusters FTC #16053 para a temporada BIOBUZZ (2026-2027)",
   "type": "module",
   "engines": {
@@ -15,8 +15,9 @@
     "lint": "oxlint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test:rules": "firebase emulators:exec --only firestore --project demo-scouting \"vitest run\"",
-    "check": "npm run lint && npm run format:check && npm run build"
+    "test:unit": "vitest run tests/unit",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-scouting \"vitest run tests/rules\"",
+    "check": "npm run lint && npm run format:check && npm run test:unit && npm run build"
   },
   "dependencies": {
     "firebase": "^13.4.0",

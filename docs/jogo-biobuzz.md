@@ -54,4 +54,4 @@ Faltas: **MINOR = 5** e **MAJOR = 20** pontos para o adversário.
 
 ## O que isso significa para o scouting
 
-O **TIP é da aliança**: os dois robôs lançam no mesmo CELL. Por isso o scouter conta **lançamentos certos e errados do robô dele**, que é o que mostra a contribuição individual para os TIPS. Placar e TIPS oficiais podem ser puxados depois dos resultados da _FIRST_.
+O **TIP é da aliança**: os dois robôs lançam no mesmo CELL. Por isso o scouter registra os **ciclos do robô dele**: quanto tempo leva para coletar e ficar pronto, quantas peças coletou e quantas acertou. Isso mostra a contribuição individual para os TIPS (precisão e ritmo). Placar e TIPS oficiais podem ser puxados depois dos resultados da _FIRST_.

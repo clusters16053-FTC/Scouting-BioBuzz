@@ -3,7 +3,7 @@
  *
  * Se mudar algum campo aqui, atualize também:
  *   - firestore.rules (validPitReport)
- *   - tests/firestore.rules.test.js
+ *   - tests/rules/firestore.rules.test.js
  *   - docs/modelo-de-dados.md
  */
 import { createId } from '../../lib/ids.js'

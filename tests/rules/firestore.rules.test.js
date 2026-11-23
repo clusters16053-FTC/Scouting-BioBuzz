@@ -30,8 +30,15 @@ import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest'
 import {
   createEmptyMatchDraft,
   toMatchDocument,
-} from '../src/features/match-scouting/match-schema.js'
-import { createEmptyPitDraft, toPitDocument } from '../src/features/pit-scouting/pit-schema.js'
+} from '../../src/features/match-scouting/match-schema.js'
+import { createEmptyPitDraft, toPitDocument } from '../../src/features/pit-scouting/pit-schema.js'
+import {
+  closeCycle,
+  createPhaseTimer,
+  markFired,
+  setCollected,
+  startPhase,
+} from '../../src/features/match-scouting/cycles/cycle-math.js'
 
 const TEAM_CODE = 'codigo-secreto'
 const EVENT = 'events/BRCEFOR'
@@ -67,13 +74,45 @@ beforeEach(async () => {
 const anonymous = () => testEnv.unauthenticatedContext().firestore()
 const user = (uid) => testEnv.authenticatedContext(uid).firestore()
 
+/**
+ * Simula o scouter registrando ciclos: [[segundo do ATIROU, coletou, acertou], ...]
+ * O "Começou" acontece no segundo 0 e os acertos são informados 1 s depois de cada ATIROU.
+ */
+function phaseTimer(cycles, { isPreloadPhase = false } = {}) {
+  const base = 1_700_000_000_000
+  let timer = startPhase(createPhaseTimer(), base)
+  for (const [firedAt, collected, hits] of cycles) {
+    timer = markFired(timer, base + firedAt * 1000)
+    timer = setCollected(timer, collected)
+    timer = closeCycle(timer, hits, base + (firedAt + 1) * 1000, { isPreloadPhase })
+  }
+  return timer
+}
+
 /** Relatório de partida preenchido, exatamente como o app gera. */
 function matchReport(uid, overrides = {}) {
   const draft = {
     ...createEmptyMatchDraft({ matchNumber: 12, alliance: 'red', station: 1 }),
     teamNumber: 16053,
-    auto: { leave: true, made: 3, missed: 1, park: false },
-    teleop: { made: 9, missed: 4, intake: ['floor', 'flower'] },
+    auto: {
+      leave: true,
+      park: false,
+      timer: phaseTimer(
+        [
+          [3, 4, 4],
+          [18, 4, 2],
+        ],
+        { isPreloadPhase: true },
+      ),
+    },
+    teleop: {
+      intake: ['floor', 'flower'],
+      timer: phaseTimer([
+        [10, 4, 3],
+        [24, 3, 3],
+        [39, 4, 1],
+      ]),
+    },
     endgame: { nectarFlower: 2, pollenFlower: 1, garden: 0, park: true },
     defensePlayed: 'low',
     issues: ['tipped'],
@@ -228,7 +267,8 @@ describe('relatórios de partida — validação dos campos', () => {
     ['equipe como texto', { teamNumber: '16053' }],
     ['posição 3', { station: 3 }],
     ['partida 0', { matchNumber: 0 }],
-    ['versão de schema desconhecida', { schemaVersion: 2 }],
+    ['versão de schema antiga', { schemaVersion: 1 }],
+    ['versão de schema desconhecida', { schemaVersion: 3 }],
     ['nota 6', { driverRating: 6 }],
     ['defesa inválida', { defensePlayed: 'total' }],
     ['problema desconhecido', { issues: ['explodiu'] }],
@@ -240,10 +280,20 @@ describe('relatórios de partida — validação dos campos', () => {
   })
 
   it.each([
-    ['AUTO com contagem negativa', (d) => ({ ...d, auto: { ...d.auto, made: -1 } })],
-    ['AUTO com campo extra', (d) => ({ ...d, auto: { ...d.auto, tips: 3 } })],
+    ['AUTO no formato antigo (v1)', (d) => ({ ...d, auto: { ...d.auto, made: 3, missed: 1 } })],
     ['AUTO sem PARK', (d) => ({ ...d, auto: without(d.auto, 'park') })],
-    ['TELEOP com contagem gigante', (d) => ({ ...d, teleop: { ...d.teleop, made: 1000 } })],
+    ['total de ciclos diferente da lista', (d) => ({ ...d, auto: { ...d.auto, totalCycles: 5 } })],
+    ['mais acertos que tiros', (d) => ({ ...d, teleop: { ...d.teleop, totalHits: 99 } })],
+    ['mais de 4 tiros por ciclo', (d) => ({ ...d, teleop: { ...d.teleop, totalShots: 40 } })],
+    ['tempo médio negativo', (d) => ({ ...d, teleop: { ...d.teleop, avgCycleSeconds: -2 } })],
+    ['tempo médio como texto', (d) => ({ ...d, teleop: { ...d.teleop, avgCycleSeconds: '11' } })],
+    [
+      'lista de ciclos gigante',
+      (d) => ({
+        ...d,
+        teleop: { ...d.teleop, cycles: Array(31).fill(d.teleop.cycles[0]), totalCycles: 31 },
+      }),
+    ],
     ['TELEOP com coleta inválida', (d) => ({ ...d, teleop: { ...d.teleop, intake: ['ceu'] } })],
     ['final com GARDEN fracionado', (d) => ({ ...d, endgame: { ...d.endgame, garden: 1.5 } })],
   ])('barra %s', async (_, change) => {
