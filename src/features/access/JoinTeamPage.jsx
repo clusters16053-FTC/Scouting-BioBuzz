@@ -24,15 +24,21 @@ export default function JoinTeamPage() {
 
   return (
     <div className="center-screen">
-      <form className="card form" onSubmit={handleSubmit}>
-        <img src="/favicon.svg" alt="" width="56" height="56" />
+      <form className="join form" onSubmit={handleSubmit}>
+        <img
+          className="join__logo"
+          src="/clusters-logo.png"
+          alt="Clusters 16053"
+          width="112"
+          height="112"
+        />
         <h1>Entrar na equipe</h1>
         <p className="muted">
           Faça isso uma vez, com internet. Depois o app funciona mesmo offline.
         </p>
 
         <label className="field">
-          <span>Seu nome</span>
+          <span className="field-label">Seu nome</span>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -43,7 +49,7 @@ export default function JoinTeamPage() {
         </label>
 
         <label className="field">
-          <span>Código da equipe</span>
+          <span className="field-label">Código da equipe</span>
           <input
             value={code}
             onChange={(e) => setCode(e.target.value)}

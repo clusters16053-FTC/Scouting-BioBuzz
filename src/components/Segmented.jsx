@@ -3,10 +3,14 @@
  * Mais rápido que um <select> no celular: um toque e pronto.
  *
  * options: [{ value, label, tone? }]
+ * columns: opcional — força uma grade com N colunas
  */
-export default function Segmented({ label, value, options, onChange, name }) {
+export default function Segmented({ label, value, options, onChange, columns }) {
   return (
-    <fieldset className="segmented">
+    <fieldset
+      className={`segmented ${columns ? 'segmented--grid' : ''}`}
+      style={columns ? { '--columns': columns } : undefined}
+    >
       {label && <legend className="field-label">{label}</legend>}
       <div className="segmented__options" role="radiogroup">
         {options.map((option) => {
@@ -17,7 +21,6 @@ export default function Segmented({ label, value, options, onChange, name }) {
               type="button"
               role="radio"
               aria-checked={selected}
-              name={name}
               className={`segmented__option ${selected ? 'is-selected' : ''} ${
                 option.tone ? `tone-${option.tone}` : ''
               }`}

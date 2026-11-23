@@ -1,20 +1,21 @@
 /**
  * Itens do menu. Ficam separados do Layout porque a Home
- * também usa essa lista para montar os cards de atalho.
+ * também usa essa lista para montar os atalhos.
+ * `icon` é o nome de um ícone em src/components/Icon.jsx.
  */
 export const NAV_ITEMS = [
-  { to: '/', label: 'Início', icon: '🏠', description: '' },
+  { to: '/', label: 'Início', icon: 'home', description: '' },
   {
     to: '/partida',
     label: 'Partida',
-    icon: '🎯',
-    description: 'Acompanhe um robô durante a partida',
+    icon: 'match',
+    description: 'Acompanhar um robô durante a partida',
   },
-  { to: '/pit', label: 'Pit', icon: '🔧', description: 'Entreviste a equipe nos boxes' },
+  { to: '/pit', label: 'Pit', icon: 'pit', description: 'Entrevistar uma equipe nos boxes' },
   {
     to: '/dashboard',
     label: 'Dashboard',
-    icon: '📊',
-    description: 'Compare equipes e monte a estratégia',
+    icon: 'dashboard',
+    description: 'Comparar equipes e montar a estratégia',
   },
 ]

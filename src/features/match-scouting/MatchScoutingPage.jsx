@@ -138,14 +138,11 @@ function MatchForm({ eventId, draft }) {
     <section className="match-form">
       <header className="match-form__header">
         <div className="match-form__context">
-          <span className="muted">{eventId}</span>
           {draft.matchNumber > 0 && <span className="pill">Partida {draft.matchNumber}</span>}
           {draft.teamNumber > 0 && (
-            <span className={`pill pill--${draft.alliance ?? 'neutral'}`}>
-              {draft.teamNumber}
-              {draft.station ? ` · ${draft.station}` : ''}
-            </span>
+            <span className={`pill pill--${draft.alliance ?? 'neutral'}`}>{draft.teamNumber}</span>
           )}
+          {draft.station && <span className="pill">Posição {draft.station}</span>}
         </div>
 
         <nav className="step-tabs" aria-label="Fases da partida">
@@ -182,7 +179,7 @@ function MatchForm({ eventId, draft }) {
             className="button button--ghost"
             onClick={() => goTo(steps[stepIndex - 1].id)}
           >
-            ← Voltar
+            Voltar
           </button>
         ) : (
           <ConfirmButton onConfirm={handleDiscard}>Limpar</ConfirmButton>
@@ -194,7 +191,7 @@ function MatchForm({ eventId, draft }) {
           </button>
         ) : (
           <button type="button" className="button" onClick={() => goTo(steps[stepIndex + 1].id)}>
-            Próximo →
+            Próximo
           </button>
         )}
       </div>
