@@ -152,7 +152,7 @@ service cloud.firestore {
         && isIntBetween(report.teamNumber, 1, 99999)
         && isText(report.teamName, 60)
         && report.drivetrain in ['mecanum', 'tank', 'swerve', 'other']
-        && report.shooterShape in ['c', 's', 'other', 'none']
+        && report.shooterShape in ['c', 's', 'turret', 'other', 'none']
         && isListOf(report.flowerPlaces, ['nectar', 'pollen'])
         && report.removesFromFlower is bool
         && isText(report.autoNotes, 500)

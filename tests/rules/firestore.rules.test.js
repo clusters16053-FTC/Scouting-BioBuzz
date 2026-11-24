@@ -327,6 +327,10 @@ describe('relatórios de pit', () => {
     await assertSucceeds(save(data))
   })
 
+  it('aceita shooter com turret', async () => {
+    await assertSucceeds(save(pitReport('membro', { shooterShape: 'turret' })))
+  })
+
   it('logado sem código não cria', async () => {
     await assertFails(save(pitReport('intruso'), 'intruso'))
   })

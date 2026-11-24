@@ -33,10 +33,11 @@ export default function PreMatchStep({ draft, update }) {
         placeholder="Ex.: 16053"
         onChange={(teamNumber) => update({ teamNumber })}
       />
+      {/* A pergunta é positiva, mas o dado guardado continua sendo "noShow". */}
       <Toggle
-        label="Robô não apareceu?"
-        value={draft.noShow}
-        onChange={(noShow) => update({ noShow })}
+        label="Robô apareceu?"
+        value={!draft.noShow}
+        onChange={(appeared) => update({ noShow: !appeared })}
       />
     </div>
   )

@@ -35,6 +35,7 @@ export const DRIVETRAIN_OPTIONS = [
 export const SHOOTER_SHAPE_OPTIONS = [
   { value: 'c', label: 'C' },
   { value: 's', label: 'S' },
+  { value: 'turret', label: 'Turret' },
   { value: 'other', label: 'Outro' },
   { value: 'none', label: 'Sem shooter' },
 ]

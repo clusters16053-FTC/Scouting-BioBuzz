@@ -36,28 +36,28 @@ Quem pode ler e escrever cada coleção está em [firebase.md](firebase.md).
 
 ## Relatório de partida (`matchReports`)
 
-| Fase          | Campo                                                 | Tipo                                             |
-| ------------- | ----------------------------------------------------- | ------------------------------------------------ |
-| Pré           | `matchNumber`                                         | número                                           |
-|               | `alliance`                                            | `"red"` \| `"blue"`                              |
-|               | `station`                                             | `1` \| `2`                                       |
-|               | `teamNumber`                                          | número                                           |
-|               | `scouter`                                             | texto                                            |
-|               | `noShow`                                              | booleano                                         |
-| AUTO          | `auto.leave`                                          | booleano                                         |
-|               | `auto.park`                                           | booleano                                         |
-|               | `auto.cycles` + totais                                | ver [Ciclos](#ciclos-auto-e-teleop)              |
-| TELEOP        | `teleop.cycles` + totais                              | ver [Ciclos](#ciclos-auto-e-teleop)              |
-|               | `teleop.intake`                                       | lista: `"floor"`, `"flower"`, `"garden"`         |
-| Último minuto | `endgame.nectarFlower`                                | número                                           |
-|               | `endgame.pollenFlower`                                | número                                           |
-|               | `endgame.garden`                                      | número                                           |
-|               | `endgame.park`                                        | booleano                                         |
-| Geral         | `defensePlayed` / `defenseReceived`                   | `"none"` \| `"low"` \| `"high"`                  |
-|               | `issues`                                              | lista: `"stopped"`, `"tipped"`, `"disconnected"` |
-|               | `driverRating`                                        | número de 0 a 5 (0 = sem nota)                   |
-|               | `notes`                                               | texto                                            |
-| Metadados     | `schemaVersion`, `createdAt`, `syncedAt`, `createdBy` | —                                                |
+| Fase          | Campo                                                 | Tipo                                              |
+| ------------- | ----------------------------------------------------- | ------------------------------------------------- |
+| Pré           | `matchNumber`                                         | número                                            |
+|               | `alliance`                                            | `"red"` \| `"blue"`                               |
+|               | `station`                                             | `1` \| `2`                                        |
+|               | `teamNumber`                                          | número                                            |
+|               | `scouter`                                             | texto                                             |
+|               | `noShow`                                              | booleano — na tela é "Robô apareceu?" (invertido) |
+| AUTO          | `auto.leave`                                          | booleano                                          |
+|               | `auto.park`                                           | booleano                                          |
+|               | `auto.cycles` + totais                                | ver [Ciclos](#ciclos-auto-e-teleop)               |
+| TELEOP        | `teleop.cycles` + totais                              | ver [Ciclos](#ciclos-auto-e-teleop)               |
+|               | `teleop.intake`                                       | lista: `"floor"`, `"flower"`, `"garden"`          |
+| Último minuto | `endgame.nectarFlower`                                | número                                            |
+|               | `endgame.pollenFlower`                                | número                                            |
+|               | `endgame.garden`                                      | número                                            |
+|               | `endgame.park`                                        | booleano                                          |
+| Geral         | `defensePlayed` / `defenseReceived`                   | `"none"` \| `"low"` \| `"high"`                   |
+|               | `issues`                                              | lista: `"stopped"`, `"tipped"`, `"disconnected"`  |
+|               | `driverRating`                                        | número de 0 a 5 (0 = sem nota)                    |
+|               | `notes`                                               | texto                                             |
+| Metadados     | `schemaVersion`, `createdAt`, `syncedAt`, `createdBy` | —                                                 |
 
 Exemplo:
 
@@ -131,18 +131,18 @@ O scouter não anota erros: **erros = `totalShots − totalHits`** e **precisão
 
 `schemaVersion: 2`
 
-| Seção     | Campo                                                            | Tipo                                                             |
-| --------- | ---------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Equipe    | `teamNumber`                                                     | número (obrigatório)                                             |
-|           | `teamName`                                                       | texto (até 60)                                                   |
-| Robô      | `drivetrain`                                                     | `"mecanum"` \| `"tank"` \| `"swerve"` \| `"other"` (obrigatório) |
-|           | `shooterShape`                                                   | `"c"` \| `"s"` \| `"other"` \| `"none"` (obrigatório)            |
-| FLOWER    | `flowerPlaces`                                                   | "Pontua na FLOWER?" — lista: `"nectar"`, `"pollen"`; vazia = Não |
-|           | `removesFromFlower`                                              | "Tira da FLOWER?" — booleano                                     |
-| AUTO      | `autoNotes`                                                      | texto livre (até 500)                                            |
-| Final     | `strategy`                                                       | texto (até 500)                                                  |
-|           | `hasPhoto`                                                       | booleano — se existe foto em `pitPhotos` com o mesmo id          |
-| Metadados | `schemaVersion`, `createdAt`, `syncedAt`, `scouter`, `createdBy` | —                                                                |
+| Seção     | Campo                                                            | Tipo                                                                |
+| --------- | ---------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Equipe    | `teamNumber`                                                     | número (obrigatório)                                                |
+|           | `teamName`                                                       | texto (até 60)                                                      |
+| Robô      | `drivetrain`                                                     | `"mecanum"` \| `"tank"` \| `"swerve"` \| `"other"` (obrigatório)    |
+|           | `shooterShape`                                                   | `"c"` \| `"s"` \| `"turret"` \| `"other"` \| `"none"` (obrigatório) |
+| FLOWER    | `flowerPlaces`                                                   | "Pontua na FLOWER?" — lista: `"nectar"`, `"pollen"`; vazia = Não    |
+|           | `removesFromFlower`                                              | "Tira da FLOWER?" — booleano                                        |
+| AUTO      | `autoNotes`                                                      | texto livre (até 500)                                               |
+| Final     | `strategy`                                                       | texto (até 500)                                                     |
+|           | `hasPhoto`                                                       | booleano — se existe foto em `pitPhotos` com o mesmo id             |
+| Metadados | `schemaVersion`, `createdAt`, `syncedAt`, `scouter`, `createdBy` | —                                                                   |
 
 Exemplo:
 
