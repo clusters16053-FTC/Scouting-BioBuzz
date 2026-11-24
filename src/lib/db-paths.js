@@ -8,4 +8,5 @@ export const paths = {
   matchReports: (eventId) => `events/${eventId}/matchReports`,
   pitReports: (eventId) => `events/${eventId}/pitReports`,
   pitPhotos: (eventId) => `events/${eventId}/pitPhotos`,
+  watchlist: (eventId) => `events/${eventId}/watchlist`,
 }

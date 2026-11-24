@@ -217,6 +217,21 @@ service cloud.firestore {
           && incoming().image.size() <= 400000;
         allow delete: if false;
       }
+
+      // Favoritas da equipe (lista de olho para a aliança), compartilhadas por todos.
+      // O id do documento é o número da equipe: marcar duas vezes cai no mesmo lugar.
+      // Desmarcar apaga o documento.
+      match /watchlist/{teamId} {
+        allow read: if isMember();
+        allow create, update: if isMember()
+          && hasExactly(incoming(), ['teamNumber', 'scouter', 'addedBy', 'addedAt'])
+          && isIntBetween(incoming().teamNumber, 1, 99999)
+          && teamId == string(incoming().teamNumber)
+          && isText(incoming().scouter, 40)
+          && incoming().addedBy == request.auth.uid
+          && incoming().addedAt == request.time;
+        allow delete: if isMember();
+      }
     }
 
     // Qualquer outro caminho: bloqueado.

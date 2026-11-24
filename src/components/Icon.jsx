@@ -56,6 +56,21 @@ const PATHS = {
     <>
       <path d="M7 4 4 7l3 3M4 7h12M17 20l3-3-3-3M20 17H8" />
     </>
+  ), // Busca: lupa
+  search: (
+    <>
+      <circle cx="10.5" cy="10.5" r="6" />
+      <path d="m15 15 5 5" />
+    </>
+  ),
+  // Favorita: estrela (preenchida via CSS quando marcada)
+  star: <path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" />,
+  // Comparar: duas colunas lado a lado
+  compare: (
+    <>
+      <rect x="3.5" y="5" width="7" height="14" rx="1.5" />
+      <rect x="13.5" y="5" width="7" height="14" rx="1.5" />
+    </>
   ),
 }
 

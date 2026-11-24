@@ -23,9 +23,10 @@ O site é público e a configuração do Firebase fica visível no JavaScript. I
 | `events/{id}/matchReports` | membros            | membros, em nome próprio                        |
 | `events/{id}/pitReports`   | membros            | membros, em nome próprio                        |
 | `events/{id}/pitPhotos`    | membros            | membros, foto de até ~300 KB                    |
+| `events/{id}/watchlist`    | membros            | membros marcam e desmarcam favoritas            |
 | qualquer outro caminho     | ninguém            | ninguém                                         |
 
-Ninguém apaga nada pelo app, nem membro. Se precisar apagar, é pelo console.
+Ninguém apaga relatório nem foto pelo app, nem membro. Se precisar apagar, é pelo console. A única exceção são as favoritas: desmarcar a estrela apaga o documento da favorita.
 
 > **Trocar o código** impede que novos aparelhos entrem com o código antigo, mas quem já entrou continua com acesso. Para expulsar todo mundo, apague os documentos de `members` no console.
 

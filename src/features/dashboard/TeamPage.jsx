@@ -10,47 +10,79 @@ import {
 import { formatNumber, formatRate } from './analytics.js'
 import MatchColumns from './charts/MatchColumns.jsx'
 import MeterList from './charts/MeterList.jsx'
-import StatTile from './components/StatTile.jsx'
+import RankTile from './components/RankTile.jsx'
+import StarButton from './components/StarButton.jsx'
+import { METRICS, RELIABLE_MATCHES, isLowSample, positionOf } from './metrics.js'
 import { usePitPhoto } from './use-pit-photo.js'
+
+/** Números do topo da ficha, cada um com a posição no evento. */
+const KEY_METRICS = [
+  'avgTotalHits',
+  'accuracy',
+  'avgCycleSeconds',
+  'avgTeleopCycles',
+  'avgLeaveParkPoints',
+  'avgFlowerPieces',
+]
+
+/** Índice da ficha: pula direto para a seção. */
+const SECTIONS = [
+  ['desempenho', 'Desempenho'],
+  ['consistencia', 'Consistência'],
+  ['comportamento', 'Comportamento'],
+  ['pit', 'Pit'],
+  ['observacoes', 'Observações'],
+  ['partidas', 'Partidas'],
+]
 
 const labelOf = (options, value) => options.find((o) => o.value === value)?.label ?? '—'
 
-/** "+1,2 acima da média" / "0,8 abaixo da média" */
+/** Tendência: as últimas 3 partidas comparadas com a média geral. */
 function describeTrend(trend) {
-  if (trend === null) return 'Ainda sem partidas suficientes para tendência'
-  if (Math.abs(trend) < 0.25) return 'Estável em relação à média'
+  if (trend === null) return 'Ainda sem partidas suficientes para ver tendência'
+  if (Math.abs(trend) < 0.25) return 'Últimas 3 partidas no mesmo nível da média'
   return trend > 0
-    ? `${formatNumber(trend)} acima da média geral`
-    : `${formatNumber(-trend)} abaixo da média geral`
+    ? `Últimas 3 partidas: ${formatNumber(trend)} acertos acima da média geral`
+    : `Últimas 3 partidas: ${formatNumber(-trend)} acertos abaixo da média geral`
 }
 
 export default function TeamPage() {
   const { teamNumber } = useParams()
-  const { eventId, summary } = useOutletContext()
+  const { eventId, summary, watchlist } = useOutletContext()
   const team = summary.teams.find((t) => t.teamNumber === Number(teamNumber))
 
   if (!team) {
     return (
       <div className="empty-state">
         <h2>Equipe {teamNumber} sem relatórios neste evento</h2>
-        <Link to="/dashboard" className="button button--ghost">
-          Voltar ao ranking
+        <Link to="/dashboard/equipes" className="button button--ghost">
+          Ver todas as equipes
         </Link>
       </div>
     )
   }
 
-  const ranked = summary.teams
-    .filter((t) => t.played > 0)
-    .sort((a, b) => b.avgTotalHits - a.avgTotalHits)
-  const position = ranked.findIndex((t) => t.teamNumber === team.teamNumber) + 1
+  const position = (key) => positionOf(summary.teams, key, team.teamNumber)
+  const detail = {
+    avgTotalHits: `AUTO ${formatNumber(team.avgAutoHits)} e TELEOP ${formatNumber(team.avgTeleopHits)}`,
+    accuracy: `AUTO ${formatRate(team.autoAccuracy)} e TELEOP ${formatRate(team.teleopAccuracy)}`,
+    avgCycleSeconds: 'No TELEOP, sem o preload',
+    avgTeleopCycles: 'Por partida, no TELEOP',
+    avgLeaveParkPoints: 'Pontos por partida',
+    avgFlowerPieces: 'NECTAR + POLLEN por partida',
+  }
+  const sections = SECTIONS.filter(([id]) => {
+    if (id === 'observacoes') return team.notes.length > 0
+    if (id === 'pit') return true
+    return team.played > 0
+  })
 
   return (
     <article className="dashboard__body team-page">
       <header className="team-hero">
-        <Link to="/dashboard" className="back-link">
+        <Link to="/dashboard/equipes" className="back-link">
           <Icon name="back" size={20} />
-          Ranking
+          Equipes
         </Link>
         <div className="team-hero__title">
           <h2 className="team-hero__number">{team.teamNumber}</h2>
@@ -59,51 +91,86 @@ export default function TeamPage() {
             <p className="muted">
               {team.played} {team.played === 1 ? 'partida jogada' : 'partidas jogadas'}
               {team.noShows > 0 && `, ${team.noShows} sem aparecer`}
-              {position > 0 && `. ${position}º de ${ranked.length} em acertos`}
             </p>
           </div>
-          {team.teamNumber === OWN_TEAM.number && <span className="tag">Nossa equipe</span>}
+          <div className="team-hero__tags">
+            {team.teamNumber === OWN_TEAM.number && <span className="tag">Nossa equipe</span>}
+            {team.played > 0 && isLowSample(team) && (
+              <span
+                className="tag tag--warn"
+                title={`Menos de ${RELIABLE_MATCHES} partidas: as médias ainda mudam bastante`}
+              >
+                poucos dados
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="team-hero__actions">
+          <StarButton teamNumber={team.teamNumber} watchlist={watchlist} />
+          <Link
+            to={`/dashboard/comparar?equipes=${team.teamNumber}`}
+            className="button button--ghost button--small"
+          >
+            <Icon name="compare" size={18} />
+            Comparar
+          </Link>
         </div>
       </header>
 
+      <nav className="section-index" aria-label="Seções da ficha">
+        {sections.map(([id, label]) => (
+          <a key={id} href={`#${id}`}>
+            {label}
+          </a>
+        ))}
+      </nav>
+
       {team.played > 0 && (
         <>
-          <dl className="stat-row">
-            <StatTile
-              label="Acertos por partida"
-              value={formatNumber(team.avgTotalHits)}
-              detail={`AUTO ${formatNumber(team.avgAutoHits)} e TELEOP ${formatNumber(team.avgTeleopHits)}`}
-              emphasis
-            />
-            <StatTile
-              label="Precisão"
-              value={formatRate(team.accuracy)}
-              detail={`AUTO ${formatRate(team.autoAccuracy)} e TELEOP ${formatRate(team.teleopAccuracy)}`}
-            />
-            <StatTile
-              label="Tempo de ciclo"
-              value={`${formatNumber(team.avgCycleSeconds)} s`}
-              detail="Coletar e ficar pronto para atirar, no TELEOP"
-            />
-            <StatTile
-              label="Ciclos por partida"
-              value={formatNumber(team.avgTeleopCycles)}
-              detail="No TELEOP"
-            />
+          <dl id="desempenho" className="stat-row stat-row--3 anchor-target">
+            {KEY_METRICS.map((key, index) => (
+              <RankTile
+                key={key}
+                label={METRICS[key].label}
+                value={METRICS[key].format(team[key])}
+                detail={detail[key]}
+                position={position(key)}
+                emphasis={index === 0}
+              />
+            ))}
           </dl>
 
-          <section className="panel">
+          <section id="consistencia" className="panel anchor-target">
             <header className="panel__header">
-              <h2>Partida a partida</h2>
+              <h2>Consistência</h2>
               <p className="muted">
-                Pior partida {team.minHits}, melhor {team.maxHits}. Últimas 3:{' '}
-                {formatNumber(team.recentHits)} ({describeTrend(team.trend)}).
+                Acertos no CELL em cada partida. Quanto menor a variação, mais dá para contar com a
+                média.
               </p>
             </header>
+            <dl className="stat-cells">
+              <div>
+                <dt>Pior partida</dt>
+                <dd>{team.minHits}</dd>
+              </div>
+              <div>
+                <dt>Melhor partida</dt>
+                <dd>{team.maxHits}</dd>
+              </div>
+              <div>
+                <dt>Variação</dt>
+                <dd>{team.hitsStdDev === null ? '—' : `±${formatNumber(team.hitsStdDev)}`}</dd>
+              </div>
+              <div>
+                <dt>Últimas 3</dt>
+                <dd>{formatNumber(team.recentHits)}</dd>
+              </div>
+            </dl>
+            <p className="muted consistency-trend">{describeTrend(team.trend)}.</p>
             <MatchColumns matches={matchesForChart(team)} />
           </section>
 
-          <div className="panel-grid">
+          <div id="comportamento" className="panel-grid anchor-target">
             <section className="panel">
               <header className="panel__header">
                 <h2>LEAVE, PARK e comportamento</h2>
@@ -169,7 +236,7 @@ export default function TeamPage() {
       <PitPanel eventId={eventId} pit={team.pit} />
 
       {team.notes.length > 0 && (
-        <section className="panel">
+        <section id="observacoes" className="panel anchor-target">
           <header className="panel__header">
             <h2>Observações dos scouters</h2>
           </header>
@@ -186,7 +253,7 @@ export default function TeamPage() {
       )}
 
       {team.perMatch.length > 0 && (
-        <section className="panel">
+        <section id="partidas" className="panel anchor-target">
           <header className="panel__header">
             <h2>Tabela partida a partida</h2>
           </header>
@@ -217,7 +284,7 @@ function PitPanel({ eventId, pit }) {
 
   if (!pit) {
     return (
-      <section className="panel">
+      <section id="pit" className="panel anchor-target">
         <header className="panel__header">
           <h2>Pit</h2>
           <p className="muted">Ninguém entrevistou essa equipe ainda.</p>
@@ -231,7 +298,7 @@ function PitPanel({ eventId, pit }) {
     : 'Não pontua'
 
   return (
-    <section className="panel pit-panel">
+    <section id="pit" className="panel pit-panel anchor-target">
       <header className="panel__header">
         <h2>Pit</h2>
         {pit.scouter && <p className="muted">Entrevista feita por {pit.scouter}</p>}

@@ -2,32 +2,50 @@
 
 A dashboard serve para **decidir estratégia entre as partidas**. Ela lê os relatórios do evento atual em tempo real: quando um scouter salva uma partida e o celular dele sincroniza, os números mudam sozinhos.
 
-Todos os cálculos ficam em [`src/features/dashboard/analytics.js`](../src/features/dashboard/analytics.js) e têm testes em [`tests/unit/analytics.test.js`](../tests/unit/analytics.test.js).
+Os cálculos ficam em [`analytics.js`](../src/features/dashboard/analytics.js) (médias de cada equipe) e [`metrics.js`](../src/features/dashboard/metrics.js) (nome e direção de cada métrica, posições, líderes, atalhos e comparação), com testes em [`tests/unit/`](../tests/unit/).
 
 ## Telas
 
-| Tela                 | Para quê                                                                                      |
-| -------------------- | --------------------------------------------------------------------------------------------- |
-| **Ranking**          | Visão do evento: números gerais, gráfico de acertos por partida e tabela ordenável de equipes |
-| **Ficha da equipe**  | Tudo sobre um robô: desempenho, partida a partida, comportamento, pit, foto e observações     |
-| **Preparar partida** | Escolher os 4 robôs da próxima partida e comparar as alianças                                 |
+| Tela                | Para quê                                                                                                |
+| ------------------- | ------------------------------------------------------------------------------------------------------- |
+| **Visão geral**     | Onde a Clusters está em cada categoria, os 3 líderes de cada categoria e todas as equipes numa métrica  |
+| **Equipes**         | Tabela de todas as equipes com atalhos de um toque (filtro + ordenação) e estrela de favorita           |
+| **Ficha da equipe** | Tudo sobre um robô: cada número com a posição no evento, consistência, comportamento, pit e observações |
+| **Comparar**        | De 2 a 4 equipes lado a lado, com o melhor valor de cada linha destacado                                |
+| **Próxima partida** | Escolher os 4 robôs da próxima partida e comparar as alianças (favoritas aparecem primeiro na lista)    |
+
+### Atalhos
+
+- **Busca no topo:** número ou nome abre a ficha. No computador, a tecla `/` coloca o cursor na busca; ↑ ↓ escolhem e Enter abre.
+- **Atalhos da aba Equipes:** Favoritas, Melhores no CELL, Mais precisos, Ciclo rápido, Pontuam na FLOWER (em partida ou no pit), Fazem defesa (metade das partidas ou mais), Sem problemas e Sem entrevista de pit.
+- **Links:** o atalho escolhido e as equipes da comparação ficam no endereço (`/dashboard/equipes?atalho=ciclo`, `/dashboard/comparar?equipes=16053,8743`). Dá para mandar o link no grupo e quem abrir vê a mesma coisa.
+- **Favoritas (★):** compartilhadas por toda a equipe, em tempo real. Servem para montar a lista de olho da escolha de aliança.
+
+### Posição no evento
+
+Cada número da ficha vem com a posição ("3º de 16") e uma barrinha que vai do pior ao melhor do evento. Só entram no ranking equipes que jogaram e têm aquele número. Empate divide a posição (1º, 2º, 2º, 4º). No tempo de ciclo, problemas e variação, **menor é melhor**.
+
+### Poucos dados
+
+Com menos de **3 partidas**, a média ainda muda muito. Essas equipes aparecem apagadas na tabela e com a etiqueta **poucos dados** nos líderes, na ficha e na comparação. Elas não são escondidas: no começo do evento ninguém tem 3 partidas.
 
 ## O que cada número significa
 
 As médias usam **só partidas jogadas**. Partida em que o robô não apareceu conta em "partidas", mas não puxa a média para baixo.
 
-| Métrica             | Cálculo                                                                                |
-| ------------------- | -------------------------------------------------------------------------------------- |
-| Acertos por partida | Média de POLLEN acertados no CELL (AUTO + TELEOP)                                      |
-| Precisão            | Total de acertos ÷ total de POLLEN coletados (= tiros), somando todas as partidas      |
-| Tempo de ciclo      | Média de todos os ciclos do TELEOP, sem o preload: coletar e ficar pronto para atirar  |
-| Ciclos por partida  | Média de ciclos no TELEOP                                                              |
-| Pior / melhor       | Menor e maior número de acertos numa partida (consistência)                            |
-| Últimas 3           | Média de acertos nas 3 partidas mais recentes, comparada com a média geral (tendência) |
-| LEAVE+PARK          | Pontos de LEAVE (3) + PARK no AUTO (5) + PARK no final (5), em média por partida       |
-| FLOWER / GARDEN     | Média de NECTAR e POLLEN na FLOWER e no GARDEN por partida                             |
-| Taxas (%)           | Em quantas partidas jogadas aconteceu: LEAVE, PARK, jogou/sofreu defesa, teve problema |
-| Piloto              | Média das notas de 1 a 5 (partidas sem nota ficam de fora)                             |
+| Métrica             | Cálculo                                                                                  |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| Acertos por partida | Média de POLLEN acertados no CELL (AUTO + TELEOP)                                        |
+| Precisão            | Total de acertos ÷ total de POLLEN coletados (= tiros), somando todas as partidas        |
+| Tempo de ciclo      | Média de todos os ciclos do TELEOP, sem o preload: coletar e ficar pronto para atirar    |
+| Ciclos por partida  | Média de ciclos no TELEOP                                                                |
+| Pior / melhor       | Menor e maior número de acertos numa partida (consistência)                              |
+| Últimas 3           | Média de acertos nas 3 partidas mais recentes, comparada com a média geral (tendência)   |
+| Variação            | Desvio padrão dos acertos por partida (±). Quanto menor, mais dá para contar com a média |
+| LEAVE+PARK          | Pontos de LEAVE (3) + PARK no AUTO (5) + PARK no final (5), em média por partida         |
+| FLOWER / GARDEN     | Média de NECTAR e POLLEN na FLOWER e no GARDEN por partida                               |
+| Taxas (%)           | Em quantas partidas jogadas aconteceu: LEAVE, PARK, jogou/sofreu defesa, teve problema   |
+| Piloto              | Média das notas de 1 a 5 (partidas sem nota ficam de fora)                               |
 
 ### Preparar partida
 
@@ -47,7 +65,7 @@ As projeções **somam as médias** das duas equipes da aliança. É uma estimat
 - **Relatórios repetidos:** se dois scouters registrarem a mesma equipe na mesma partida, vale o mais recente. O ranking avisa quantos foram descartados.
 - **Formato antigo:** relatórios de partida de versões antigas do formulário (`schemaVersion` diferente de 2) ficam de fora, com aviso.
 - **Ciclos absurdos:** ciclo com mais de 300 s, mais acertos que POLLEN coletados ou valores quebrados é descartado, e os totais são **recalculados** a partir dos ciclos válidos. As regras do banco não conseguem validar cada item da lista de ciclos.
-- **Poucas partidas:** equipes com menos de 2 partidas aparecem apagadas na tabela. Uma partida só não diz muito.
+- **Poucas partidas:** ver [Poucos dados](#poucos-dados).
 - **Sem internet:** a dashboard mostra o que está salvo no aparelho e avisa no topo.
 
 ## Cores dos gráficos

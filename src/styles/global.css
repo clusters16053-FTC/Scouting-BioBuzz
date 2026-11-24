@@ -294,6 +294,26 @@ fieldset {
   background: var(--surface-3);
 }
 
+/* Botão secundário mais baixo, para ações dentro de cards (Comparar, Favoritar). */
+.button--small {
+  min-height: 40px;
+  padding: 0 var(--space-4);
+  font-size: 0.92rem;
+}
+
+/* Some da tela, mas o leitor de tela lê. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .button--danger {
   border-color: var(--danger);
   color: var(--danger);
