@@ -13,10 +13,13 @@ const ALLIANCES = [
 ]
 
 export default function MatchPrepPage() {
-  const { summary } = useOutletContext()
+  const { summary, watchlist } = useOutletContext()
   const slots = prepStore.useValue()
   const byNumber = new Map(summary.teams.map((t) => [t.teamNumber, t]))
   const options = [...summary.teams].sort((a, b) => a.teamNumber - b.teamNumber)
+  // Favoritas aparecem primeiro na lista: é onde costuma estar quem interessa.
+  const favorites = options.filter((t) => watchlist.teams.has(t.teamNumber))
+  const chosen = [...slots.red, ...slots.blue].filter(Boolean)
 
   const projections = Object.fromEntries(
     ALLIANCES.map(({ key }) => [key, projectAlliance(slots[key].map((n) => byNumber.get(n)))]),
@@ -57,24 +60,43 @@ export default function MatchPrepPage() {
             label={label}
             slots={slots[key]}
             options={options}
+            favorites={favorites}
             projection={projections[key]}
             onChoose={(index, value) => choose(key, index, value)}
           />
         ))}
       </div>
 
-      <button
-        type="button"
-        className="button button--ghost prep-clear"
-        onClick={() => prepStore.set({ red: [null, null], blue: [null, null] })}
-      >
-        Limpar escolhas
-      </button>
+      <div className="prep-actions">
+        {chosen.length >= 2 && (
+          <Link
+            to={`/dashboard/comparar?equipes=${chosen.join(',')}`}
+            className="button button--ghost"
+          >
+            <Icon name="compare" size={18} />
+            Comparar estas equipes
+          </Link>
+        )}
+        <button
+          type="button"
+          className="button button--ghost"
+          onClick={() => prepStore.set({ red: [null, null], blue: [null, null] })}
+        >
+          Limpar escolhas
+        </button>
+      </div>
     </div>
   )
 }
 
-function AlliancePanel({ alliance, label, slots, options, projection, onChoose }) {
+/** Texto de uma opção da lista: "8743 Abelhas Mecânicas (nós)". */
+function optionLabel(team) {
+  return `${team.teamNumber}${team.teamName ? ` ${team.teamName}` : ''}${
+    team.teamNumber === OWN_TEAM.number ? ' (nós)' : ''
+  }`
+}
+
+function AlliancePanel({ alliance, label, slots, options, favorites, projection, onChoose }) {
   const filled = projection.teams.length > 0
   const swarmShare = Math.min(projection.expectedLeavePark / projection.swarmThreshold, 1)
 
@@ -88,13 +110,22 @@ function AlliancePanel({ alliance, label, slots, options, projection, onChoose }
             <span className="field-label">Robô {index + 1}</span>
             <select value={value ?? ''} onChange={(e) => onChoose(index, e.target.value)}>
               <option value="">Escolher equipe</option>
-              {options.map((t) => (
-                <option key={t.teamNumber} value={t.teamNumber}>
-                  {t.teamNumber}
-                  {t.teamName ? ` ${t.teamName}` : ''}
-                  {t.teamNumber === OWN_TEAM.number ? ' (nós)' : ''}
-                </option>
-              ))}
+              {favorites.length > 0 && (
+                <optgroup label="★ Favoritas">
+                  {favorites.map((t) => (
+                    <option key={`fav-${t.teamNumber}`} value={t.teamNumber}>
+                      {optionLabel(t)}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+              <optgroup label="Todas as equipes">
+                {options.map((t) => (
+                  <option key={t.teamNumber} value={t.teamNumber}>
+                    {optionLabel(t)}
+                  </option>
+                ))}
+              </optgroup>
             </select>
           </label>
         ))}

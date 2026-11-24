@@ -32,6 +32,7 @@ import {
   toMatchDocument,
 } from '../../src/features/match-scouting/match-schema.js'
 import { createEmptyPitDraft, toPitDocument } from '../../src/features/pit-scouting/pit-schema.js'
+import { toWatchlistDocument } from '../../src/features/dashboard/watchlist-schema.js'
 import {
   closeCycle,
   createPhaseTimer,
@@ -372,6 +373,44 @@ describe('fotos do pit', () => {
     await assertFails(
       setDoc(photo(user('membro'), 'p1'), { image: 'abc', createdBy: 'membro', extra: 1 }),
     )
+  })
+})
+
+describe('favoritas', () => {
+  const favorite = (db, id) => doc(db, `${EVENT}/watchlist/${id}`)
+  const data = (uid, teamNumber = 8743, overrides = {}) => ({
+    ...toWatchlistDocument(teamNumber, { uid, scouter: 'Ana', addedAt: serverTimestamp() }),
+    ...overrides,
+  })
+
+  it('membro marca uma equipe como favorita', async () => {
+    await assertSucceeds(setDoc(favorite(user('membro'), '8743'), data('membro')))
+  })
+
+  it('outro membro vê a favorita e pode desmarcar', async () => {
+    await setDoc(favorite(user('membro'), '8743'), data('membro'))
+    await assertSucceeds(getDocs(collection(user('membro2'), `${EVENT}/watchlist`)))
+    await assertSucceeds(deleteDoc(favorite(user('membro2'), '8743')))
+  })
+
+  it('marcar de novo uma equipe já marcada é aceito', async () => {
+    await setDoc(favorite(user('membro'), '8743'), data('membro'))
+    await assertSucceeds(setDoc(favorite(user('membro2'), '8743'), data('membro2')))
+  })
+
+  it('logado sem código não lê nem marca', async () => {
+    await assertFails(getDocs(collection(user('intruso'), `${EVENT}/watchlist`)))
+    await assertFails(setDoc(favorite(user('intruso'), '8743'), data('intruso')))
+  })
+
+  it.each([
+    ['id diferente do número', '1234', {}],
+    ['número fora do limite', '0', { teamNumber: 0 }],
+    ['em nome de outro aparelho', '8743', { addedBy: 'membro2' }],
+    ['hora do aparelho em vez do servidor', '8743', { addedAt: new Date() }],
+    ['campo extra', '8743', { nota: 'forte' }],
+  ])('barra %s', async (_, id, overrides) => {
+    await assertFails(setDoc(favorite(user('membro'), id), data('membro', 8743, overrides)))
   })
 })
 

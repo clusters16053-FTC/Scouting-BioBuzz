@@ -15,8 +15,10 @@ events/
         │     └── {id aleatório}   → 1 documento por robô por partida
         ├── pitReports/
         │     └── {id aleatório}   → 1 documento por entrevista no pit
-        └── pitPhotos/
-              └── {mesmo id do pitReport} → { image, createdBy }
+        ├── pitPhotos/
+        │     └── {mesmo id do pitReport} → { image, createdBy }
+        └── watchlist/
+              └── {número da equipe}  → favorita da equipe (compartilhada)
 ```
 
 Quem pode ler e escrever cada coleção está em [firebase.md](firebase.md).
@@ -174,6 +176,19 @@ Exemplo:
 
 > **Por que a foto fica no Firestore?** O Firebase Storage exige o plano pago. Um documento do Firestore aguenta até 1 MiB, então uma foto comprimida no celular cabe com folga.
 
+## Favoritas (`watchlist`)
+
+A lista de olho para a escolha de aliança, **compartilhada por todo mundo da equipe**. Um documento por equipe favoritada; desmarcar a estrela apaga o documento.
+
+| Campo        | Tipo                              |
+| ------------ | --------------------------------- |
+| `teamNumber` | número (igual ao id do documento) |
+| `scouter`    | nome de quem marcou (até 40)      |
+| `addedBy`    | uid do aparelho                   |
+| `addedAt`    | hora do servidor                  |
+
+> **Por que o id é o número da equipe?** Se duas pessoas marcarem a mesma equipe ao mesmo tempo, até offline, as duas escrevem no mesmo documento e a favorita não duplica.
+
 ## Onde cada coisa é definida
 
 | O quê                                    | Arquivo                                                  |
@@ -181,6 +196,7 @@ Exemplo:
 | Campos e opções da partida               | `src/features/match-scouting/match-schema.js`            |
 | Cálculos dos ciclos                      | `src/features/match-scouting/cycles/cycle-math.js`       |
 | Campos e opções do pit                   | `src/features/pit-scouting/pit-schema.js`                |
+| Formato da favorita                      | `src/features/dashboard/watchlist-schema.js`             |
 | Validação no servidor                    | `firestore.rules` (`validMatchReport`, `validPitReport`) |
 | Testes que garantem os dois em sincronia | `tests/rules/firestore.rules.test.js`                    |
 

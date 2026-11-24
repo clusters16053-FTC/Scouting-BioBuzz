@@ -1,48 +1,30 @@
-import { useState } from 'react'
 import { Link } from 'react-router'
 import { OWN_TEAM } from '../../../config/team.js'
-import { formatNumber, formatRate } from '../analytics.js'
+import { METRICS, isLowSample } from '../metrics.js'
+import StarButton from './StarButton.jsx'
 
-/**
- * Colunas da tabela de ranking.
- * lowerIsBetter: o primeiro toque ordena do menor para o maior (ex.: tempo de ciclo).
- */
+/** Colunas, na ordem em que aparecem. Nome, formato e direção vêm de METRICS. */
 const COLUMNS = [
-  { key: 'played', label: 'Partidas', format: (v) => v },
-  { key: 'avgTotalHits', label: 'Acertos', format: formatNumber },
-  { key: 'accuracy', label: 'Precisão', format: formatRate },
-  { key: 'avgTeleopCycles', label: 'Ciclos', format: formatNumber },
-  { key: 'avgCycleSeconds', label: 'Ciclo (s)', format: formatNumber, lowerIsBetter: true },
-  { key: 'avgLeaveParkPoints', label: 'LEAVE+PARK', format: formatNumber },
-  { key: 'avgFlowerPieces', label: 'FLOWER', format: formatNumber },
-  { key: 'avgGarden', label: 'GARDEN', format: formatNumber },
-  { key: 'issueRate', label: 'Problemas', format: formatRate, lowerIsBetter: true },
-  { key: 'avgDriverRating', label: 'Piloto', format: formatNumber },
+  'avgTotalHits',
+  'accuracy',
+  'avgCycleSeconds',
+  'avgTeleopCycles',
+  'minHits',
+  'avgLeaveParkPoints',
+  'avgFlowerPieces',
+  'avgGarden',
+  'defensePlayedRate',
+  'issueRate',
+  'avgDriverRating',
 ]
 
-/** Ordena com valores vazios sempre no fim, em qualquer direção. */
-function sortTeams(teams, key, direction) {
-  return [...teams].sort((a, b) => {
-    const va = a[key]
-    const vb = b[key]
-    if (va === null || va === undefined) return 1
-    if (vb === null || vb === undefined) return -1
-    return direction === 'asc' ? va - vb : vb - va
-  })
-}
+const PLAYED = { short: 'Partidas', hint: 'Partidas jogadas (sem contar ausências)' }
 
-export default function TeamTable({ teams }) {
-  const [sort, setSort] = useState({ key: 'avgTotalHits', direction: 'desc' })
-  const sorted = sortTeams(teams, sort.key, sort.direction)
-
-  function toggle(column) {
-    setSort((current) =>
-      current.key === column.key
-        ? { key: column.key, direction: current.direction === 'asc' ? 'desc' : 'asc' }
-        : { key: column.key, direction: column.lowerIsBetter ? 'asc' : 'desc' },
-    )
-  }
-
+/**
+ * Tabela de equipes. Recebe as equipes JÁ filtradas e ordenadas pela página;
+ * sort ({ key, direction } ou null) só marca a coluna ativa, e onSort(key) avisa o clique.
+ */
+export default function TeamTable({ teams, sort, onSort, watchlist }) {
   return (
     <div className="table-scroll" role="region" aria-label="Tabela de equipes" tabIndex={0}>
       <table className="team-table">
@@ -51,53 +33,68 @@ export default function TeamTable({ teams }) {
             <th scope="col" className="team-table__team">
               Equipe
             </th>
-            {COLUMNS.map((column) => {
-              const active = sort.key === column.key
-              return (
-                <th
-                  key={column.key}
-                  scope="col"
-                  aria-sort={
-                    active ? (sort.direction === 'asc' ? 'ascending' : 'descending') : undefined
-                  }
-                >
-                  <button
-                    type="button"
-                    className={`sort-button ${active ? 'is-active' : ''}`}
-                    onClick={() => toggle(column)}
-                  >
-                    {column.label}
-                    <span className="sort-button__arrow" aria-hidden="true">
-                      {active ? (sort.direction === 'asc' ? '▲' : '▼') : ''}
-                    </span>
-                  </button>
-                </th>
-              )
-            })}
+            {COLUMNS.map((key) => (
+              <SortHeader
+                key={key}
+                columnKey={key}
+                meta={METRICS[key]}
+                sort={sort}
+                onSort={onSort}
+              />
+            ))}
+            <SortHeader columnKey="played" meta={PLAYED} sort={sort} onSort={onSort} />
           </tr>
         </thead>
         <tbody>
-          {sorted.map((team) => (
+          {teams.map((team) => (
             <tr
               key={team.teamNumber}
               className={[
                 team.teamNumber === OWN_TEAM.number ? 'is-own' : '',
-                team.played < 2 ? 'is-thin' : '',
+                isLowSample(team) ? 'is-thin' : '',
               ].join(' ')}
             >
               <th scope="row" className="team-table__team">
-                <Link to={`equipe/${team.teamNumber}`}>
-                  <strong>{team.teamNumber}</strong>
-                  <span>{team.teamName || 'Sem pit'}</span>
-                </Link>
+                <div className="team-table__cell">
+                  <StarButton teamNumber={team.teamNumber} watchlist={watchlist} compact />
+                  <Link to={`/dashboard/equipe/${team.teamNumber}`}>
+                    <strong>{team.teamNumber}</strong>
+                    <span>{team.teamName || 'Sem pit'}</span>
+                  </Link>
+                </div>
               </th>
-              {COLUMNS.map((column) => (
-                <td key={column.key}>{column.format(team[column.key])}</td>
+              {COLUMNS.map((key) => (
+                <td key={key} className={sort?.key === key ? 'is-sorted' : undefined}>
+                  {METRICS[key].format(team[key])}
+                </td>
               ))}
+              <td className={sort?.key === 'played' ? 'is-sorted' : undefined}>{team.played}</td>
             </tr>
           ))}
         </tbody>
       </table>
     </div>
+  )
+}
+
+function SortHeader({ columnKey, meta, sort, onSort }) {
+  const active = sort?.key === columnKey
+  return (
+    <th
+      scope="col"
+      title={meta.hint}
+      aria-sort={active ? (sort.direction === 'asc' ? 'ascending' : 'descending') : undefined}
+    >
+      <button
+        type="button"
+        className={`sort-button ${active ? 'is-active' : ''}`}
+        onClick={() => onSort(columnKey)}
+      >
+        {meta.short}
+        <span className="sort-button__arrow" aria-hidden="true">
+          {active ? (sort.direction === 'asc' ? '▲' : '▼') : ''}
+        </span>
+      </button>
+    </th>
   )
 }

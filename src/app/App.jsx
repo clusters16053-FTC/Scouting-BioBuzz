@@ -4,7 +4,9 @@ import HomePage from '../features/home/HomePage.jsx'
 import MatchScoutingPage from '../features/match-scouting/MatchScoutingPage.jsx'
 import PitScoutingPage from '../features/pit-scouting/PitScoutingPage.jsx'
 import DashboardLayout from '../features/dashboard/DashboardLayout.jsx'
-import RankingPage from '../features/dashboard/RankingPage.jsx'
+import OverviewPage from '../features/dashboard/OverviewPage.jsx'
+import TeamsPage from '../features/dashboard/TeamsPage.jsx'
+import ComparePage from '../features/dashboard/ComparePage.jsx'
 import TeamPage from '../features/dashboard/TeamPage.jsx'
 import MatchPrepPage from '../features/dashboard/MatchPrepPage.jsx'
 import NotFoundPage from '../features/home/NotFoundPage.jsx'
@@ -28,8 +30,10 @@ export default function App() {
               <Route path="partida" element={<MatchScoutingPage />} />
               <Route path="pit" element={<PitScoutingPage />} />
               <Route path="dashboard" element={<DashboardLayout />}>
-                <Route index element={<RankingPage />} />
+                <Route index element={<OverviewPage />} />
+                <Route path="equipes" element={<TeamsPage />} />
                 <Route path="equipe/:teamNumber" element={<TeamPage />} />
+                <Route path="comparar" element={<ComparePage />} />
                 <Route path="partida" element={<MatchPrepPage />} />
               </Route>
               <Route path="*" element={<NotFoundPage />} />
