@@ -2,6 +2,8 @@ import { Link, useOutletContext, useSearchParams } from 'react-router'
 import Icon from '../../components/Icon.jsx'
 import TeamTable from './components/TeamTable.jsx'
 import {
+  TABLE_COLUMNS,
+  hasMetric,
   METRICS,
   PRESETS,
   RELIABLE_MATCHES,
@@ -55,6 +57,11 @@ export default function TeamsPage() {
   }
 
   const favorites = presetId === 'favoritas' ? shown.slice(0, 4) : []
+  // Ranking oficial e OPR entram na frente quando a API da FIRST trouxe resultados.
+  const columns = [
+    ...['officialRank', 'opr'].filter((key) => hasMetric(summary.teams, key)),
+    ...TABLE_COLUMNS,
+  ]
 
   return (
     <div className="dashboard__body">
@@ -100,7 +107,13 @@ export default function TeamsPage() {
               : 'Nenhuma equipe neste atalho por enquanto.'}
           </p>
         ) : (
-          <TeamTable teams={shown} sort={sort} onSort={chooseSort} watchlist={watchlist} />
+          <TeamTable
+            teams={shown}
+            sort={sort}
+            onSort={chooseSort}
+            watchlist={watchlist}
+            columns={columns}
+          />
         )}
       </section>
     </div>

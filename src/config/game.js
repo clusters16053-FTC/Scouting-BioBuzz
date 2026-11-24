@@ -6,7 +6,12 @@
  * o resto do código lê daqui, nunca usa o número direto.
  */
 
-export const SEASON = Object.freeze({ name: 'BIOBUZZ', year: '2026-2027' })
+export const SEASON = Object.freeze({
+  name: 'BIOBUZZ',
+  year: '2026-2027',
+  /** Ano usado pela API oficial da FIRST: o ano do kickoff (ftc-events.firstinspires.org/2026/...). */
+  apiYear: 2026,
+})
 
 export const MATCH_TIMING = Object.freeze({
   autoSeconds: 30,

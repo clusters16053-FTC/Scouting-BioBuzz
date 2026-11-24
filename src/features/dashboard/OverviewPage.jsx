@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { Link, useOutletContext } from 'react-router'
 import { OWN_TEAM } from '../../config/team.js'
+import OfficialStatus from '../official/OfficialStatus.jsx'
 import { formatNumber, formatRate } from './analytics.js'
 import RankedBars from './charts/RankedBars.jsx'
 import RankTile from './components/RankTile.jsx'
-import { LEADER_METRICS, METRICS, leadersOf, positionOf, rankBy } from './metrics.js'
+import { METRICS, hasMetric, leaderMetricsFor, leadersOf, positionOf, rankBy } from './metrics.js'
 
 /** Métricas que dá para ver no comparativo de barras. */
 const CHART_METRICS = [
+  'opr',
   'avgTotalHits',
   'accuracy',
   'avgCycleSeconds',
@@ -28,11 +30,17 @@ function teamsLink(key) {
 }
 
 export default function OverviewPage() {
-  const { summary } = useOutletContext()
+  const { summary, official, check } = useOutletContext()
   const { teams, overview } = summary
+  // Categorias oficiais (OPR) só aparecem quando a API da FIRST está ligada e tem resultados.
+  const leaderKeys = leaderMetricsFor(teams)
+  const chartKeys = CHART_METRICS.filter((key) => !METRICS[key].official || hasMetric(teams, key))
 
   return (
     <div className="dashboard__body">
+      <OfficialStatus official={official} />
+      <DataCheck check={check} />
+
       {(overview.ignoredReports > 0 || overview.duplicates > 0) && (
         <p className="data-note muted">
           {overview.duplicates > 0 &&
@@ -42,26 +50,26 @@ export default function OverviewPage() {
         </p>
       )}
 
-      <OwnTeam teams={teams} />
+      <OwnTeam teams={teams} metricKeys={leaderKeys} />
 
       <section aria-labelledby="lideres">
         <h2 id="lideres" className="section-heading">
           Líderes
         </h2>
         <div className="leader-grid">
-          {LEADER_METRICS.map((key) => (
+          {leaderKeys.map((key) => (
             <LeaderCard key={key} metricKey={key} teams={teams} />
           ))}
         </div>
       </section>
 
-      <Comparison teams={teams} />
+      <Comparison teams={teams} metricKeys={chartKeys} />
     </div>
   )
 }
 
 /** Onde a Clusters está em cada categoria. Some se ainda não jogamos. */
-function OwnTeam({ teams }) {
+function OwnTeam({ teams, metricKeys }) {
   const own = teams.find((t) => t.teamNumber === OWN_TEAM.number)
   if (!own || own.played === 0) return null
 
@@ -76,7 +84,7 @@ function OwnTeam({ teams }) {
         </Link>
       </header>
       <dl className="stat-row stat-row--3">
-        {LEADER_METRICS.map((key) => (
+        {metricKeys.map((key) => (
           <RankTile
             key={key}
             label={METRICS[key].label}
@@ -129,7 +137,7 @@ function LeaderCard({ metricKey, teams }) {
 }
 
 /** Todas as equipes numa métrica, com troca rápida de métrica. */
-function Comparison({ teams }) {
+function Comparison({ teams, metricKeys }) {
   const [key, setKey] = useState('avgTotalHits')
   const metric = METRICS[key]
   const ranking = rankBy(teams, key)
@@ -145,7 +153,7 @@ function Comparison({ teams }) {
           </p>
         </div>
         <div className="chip-switch" role="group" aria-label="Métrica do gráfico">
-          {CHART_METRICS.map((k) => (
+          {metricKeys.map((k) => (
             <button
               key={k}
               type="button"
@@ -175,6 +183,81 @@ function Comparison({ teams }) {
           ],
         }))}
       />
+    </section>
+  )
+}
+
+const ALLIANCE_NAME = { red: 'Vermelha', blue: 'Azul' }
+const place = (w) => `Partida ${w.matchNumber}, ${ALLIANCE_NAME[w.alliance]} ${w.station}`
+
+/**
+ * Conferência com a tabela oficial: só aparece quando já há partidas oficiais jogadas.
+ * Mostra quanto foi coberto e o que precisa de atenção.
+ */
+function DataCheck({ check }) {
+  if (!check.total) return null
+  const coverage = Math.round((check.covered / check.total) * 100)
+  const fixed = check.wrongTeam.filter((w) => w.likelyTypo)
+  const doubtful = check.wrongTeam.filter((w) => !w.likelyTypo)
+  const fine = !check.wrongTeam.length && !check.missing.length
+
+  return (
+    <section className="panel data-check" aria-labelledby="conferencia">
+      <header className="panel__header panel__header--split">
+        <div>
+          <h2 id="conferencia">Conferência com a tabela oficial</h2>
+          <p className="muted">
+            {check.covered} de {check.total} robôs das partidas já jogadas têm relatório ({coverage}
+            %).
+            {fine && ' Tudo confere.'}
+          </p>
+        </div>
+        <span className="data-check__coverage" aria-hidden="true">
+          <span style={{ width: `${coverage}%` }} />
+        </span>
+      </header>
+
+      {doubtful.length > 0 && (
+        <div className="data-check__group">
+          <h3>Confira com o scouter</h3>
+          <ul>
+            {doubtful.map((w) => (
+              <li key={w.reportId ?? place(w)}>
+                {place(w)}: anotaram <strong>{w.reported}</strong>, a tabela diz{' '}
+                <strong>{w.expected}</strong>
+                {w.scouter && ` (${w.scouter})`}.
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {fixed.length > 0 && (
+        <div className="data-check__group">
+          <h3>Corrigidos automaticamente</h3>
+          <p className="muted">
+            O número anotado não está inscrito no evento, então o relatório conta para a equipe da
+            tabela.
+          </p>
+          <ul>
+            {fixed.map((w) => (
+              <li key={w.reportId}>
+                {place(w)}: {w.reported} → <strong>{w.expected}</strong>
+                {w.scouter && ` (${w.scouter})`}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {check.missing.length > 0 && (
+        <div className="data-check__group">
+          <h3>Sem relatório ({check.missing.length})</h3>
+          <p className="data-check__missing">
+            {check.missing.map((m) => `P${m.matchNumber} ${m.teamNumber}`).join(', ')}
+          </p>
+        </div>
+      )}
     </section>
   )
 }

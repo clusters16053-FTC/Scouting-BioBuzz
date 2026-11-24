@@ -2,6 +2,7 @@ import { Link, useOutletContext } from 'react-router'
 import Icon from '../../components/Icon.jsx'
 import { OWN_TEAM } from '../../config/team.js'
 import { createLocalStore } from '../../lib/local-store.js'
+import { nextMatchOf } from '../official/official-data.js'
 import { formatNumber, formatRate, projectAlliance } from './analytics.js'
 
 /** As 4 equipes escolhidas ficam salvas no aparelho entre uma visita e outra. */
@@ -13,13 +14,25 @@ const ALLIANCES = [
 ]
 
 export default function MatchPrepPage() {
-  const { summary, watchlist } = useOutletContext()
+  const { summary, watchlist, official } = useOutletContext()
   const slots = prepStore.useValue()
   const byNumber = new Map(summary.teams.map((t) => [t.teamNumber, t]))
   const options = [...summary.teams].sort((a, b) => a.teamNumber - b.teamNumber)
   // Favoritas aparecem primeiro na lista: é onde costuma estar quem interessa.
   const favorites = options.filter((t) => watchlist.teams.has(t.teamNumber))
   const chosen = [...slots.red, ...slots.blue].filter(Boolean)
+  // Próxima partida da nossa equipe pela tabela oficial (se a API da FIRST estiver ligada).
+  const ownNext = nextMatchOf(official?.matches ?? [], OWN_TEAM.number)
+
+  function fillOwnNext() {
+    const byAlliance = (alliance) =>
+      ownNext.match.teams
+        .filter((t) => t.alliance === alliance)
+        .sort((a, b) => a.station - b.station)
+        .map((t) => t.teamNumber)
+    const pad = (list) => [list[0] ?? null, list[1] ?? null]
+    prepStore.set({ red: pad(byAlliance('red')), blue: pad(byAlliance('blue')) })
+  }
 
   const projections = Object.fromEntries(
     ALLIANCES.map(({ key }) => [key, projectAlliance(slots[key].map((n) => byNumber.get(n)))]),
@@ -41,6 +54,18 @@ export default function MatchPrepPage() {
         Escolha os robôs da próxima partida. As projeções somam as médias de cada equipe: são uma
         estimativa, não uma garantia.
       </p>
+
+      {ownNext && (
+        <button type="button" className="button prep-own-next" onClick={fillOwnNext}>
+          Preencher com nossa próxima partida:{' '}
+          {ownNext.match.level === 'qual' ? `Q${ownNext.match.number}` : ownNext.match.description}
+          {ownNext.match.startTime &&
+            `, ${new Date(ownNext.match.startTime).toLocaleTimeString('pt-BR', {
+              hour: '2-digit',
+              minute: '2-digit',
+            })}`}
+        </button>
+      )}
 
       {bothFilled && (
         <p className="prep-verdict">

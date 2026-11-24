@@ -4,10 +4,14 @@ import { NAV_ITEMS } from '../../app/navigation.js'
 import { SEASON } from '../../config/game.js'
 import { useSession } from '../access/session-context.js'
 import EventPicker from '../event/EventPicker.jsx'
+import { currentEventStore } from '../event/event-store.js'
+import OfficialStatus from '../official/OfficialStatus.jsx'
+import { useOfficialData } from '../official/official-store.js'
 
 export default function HomePage() {
   const { member } = useSession()
   const shortcuts = NAV_ITEMS.filter((item) => item.to !== '/')
+  const eventId = currentEventStore.useValue()
 
   return (
     <section className="home">
@@ -19,6 +23,8 @@ export default function HomePage() {
       </header>
 
       <EventPicker />
+      {/* key: troca de evento recomeça a busca dos dados oficiais do zero. */}
+      {eventId && <HomeOfficial key={eventId} eventId={eventId} />}
 
       <nav className="shortcut-list" aria-label="O que fazer agora">
         {shortcuts.map((item) => (
@@ -35,4 +41,10 @@ export default function HomePage() {
       </nav>
     </section>
   )
+}
+
+/** Busca os dados oficiais assim que o evento é escolhido (com internet) e mostra o estado. */
+function HomeOfficial({ eventId }) {
+  const official = useOfficialData(eventId)
+  return <OfficialStatus official={official} />
 }

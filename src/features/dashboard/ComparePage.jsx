@@ -31,6 +31,22 @@ const fromMetric = (key, label) => ({
  */
 const GROUPS = [
   {
+    // Só aparece com a API da FIRST ligada e partidas jogadas.
+    title: 'Oficial (FIRST)',
+    official: true,
+    rows: [
+      fromMetric('officialRank'),
+      {
+        key: 'rankingScore',
+        label: 'RS (pontuação de ranking)',
+        format: formatNumber,
+        better: 'higher',
+      },
+      fromMetric('opr'),
+      fromMetric('autoOpr'),
+    ],
+  },
+  {
     title: 'CELL',
     rows: [
       fromMetric('avgTotalHits', 'Acertos por partida'),
@@ -231,7 +247,13 @@ function CompareTable({ teams, watchlist }) {
               ))}
             </tr>
           </thead>
-          {GROUPS.map((group) => (
+          {GROUPS.filter(
+            (group) =>
+              !group.official ||
+              teams.some((t) =>
+                group.rows.some((row) => t[row.key] !== null && t[row.key] !== undefined),
+              ),
+          ).map((group) => (
             <tbody key={group.title}>
               <tr className="compare-table__group">
                 <th scope="rowgroup" colSpan={teams.length + 1}>

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import ConfirmButton from '../../components/ConfirmButton.jsx'
 import RequireEvent from '../event/RequireEvent.jsx'
+import { teamAtStation } from '../official/official-data.js'
+import { useOfficialData } from '../official/official-store.js'
 import { useSession } from '../access/session-context.js'
 import {
   MATCH_DRAFT_VERSION,
@@ -29,12 +31,16 @@ const STEP_COMPONENTS = {
 }
 
 export default function MatchScoutingPage() {
-  return <RequireEvent>{(eventId) => <MatchScouting eventId={eventId} />}</RequireEvent>
+  return (
+    <RequireEvent>{(eventId) => <MatchScouting key={eventId} eventId={eventId} />}</RequireEvent>
+  )
 }
 
 function MatchScouting({ eventId }) {
   const draft = matchDraftStore.useValue()
   const last = lastMatchStore.useValue()
+  // Tabela oficial guardada no aparelho (busca sozinha se tiver internet).
+  const official = useOfficialData(eventId)
 
   // Rascunho de uma versão antiga do formulário: descarta, mantendo aliança e posição.
   const outdated = draft && draft.draftVersion !== MATCH_DRAFT_VERSION
@@ -54,26 +60,32 @@ function MatchScouting({ eventId }) {
 
   if (!draft) {
     if (!last) return null
+    const nextNumber = last.matchNumber + 1
+    // Mesma aliança e posição; a equipe já vem da tabela oficial, se houver.
+    const nextTeam = teamAtStation(official.matches, nextNumber, last.alliance, last.station)
+    const nextName = official.teams.find((t) => t.teamNumber === nextTeam)?.name
     return (
       <MatchSaved
         last={last}
+        next={nextTeam ? { teamNumber: nextTeam, name: nextName } : null}
         onNext={() => {
-          matchDraftStore.set(
-            createEmptyMatchDraft({
-              matchNumber: last.matchNumber + 1,
+          matchDraftStore.set({
+            ...createEmptyMatchDraft({
+              matchNumber: nextNumber,
               alliance: last.alliance,
               station: last.station,
             }),
-          )
+            ...(nextTeam ? { teamNumber: nextTeam } : {}),
+          })
         }}
       />
     )
   }
 
-  return <MatchForm eventId={eventId} draft={draft} />
+  return <MatchForm eventId={eventId} draft={draft} official={official} />
 }
 
-function MatchForm({ eventId, draft }) {
+function MatchForm({ eventId, draft, official }) {
   const { user, member } = useSession()
   const [showErrors, setShowErrors] = useState(false)
   // Os erros só dizem respeito à fase "Pré" e somem assim que o campo é corrigido.
@@ -170,7 +182,13 @@ function MatchForm({ eventId, draft }) {
         </div>
       )}
 
-      <StepComponent draft={draft} update={update} updateSection={updateSection} errors={errors} />
+      <StepComponent
+        draft={draft}
+        update={update}
+        updateSection={updateSection}
+        errors={errors}
+        official={official}
+      />
 
       <div className="action-bar">
         {stepIndex > 0 ? (

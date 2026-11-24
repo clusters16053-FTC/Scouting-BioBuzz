@@ -3,6 +3,7 @@ import {
   applyPreset,
   bestIndexes,
   isLowSample,
+  leaderMetricsFor,
   leadersOf,
   positionOf,
   rankBy,
@@ -51,6 +52,31 @@ describe('rankBy', () => {
 
   it('métrica sem "melhor" (defesa) não tem ranking', () => {
     expect(rankBy([team(1, { defensePlayedRate: 1 })], 'defensePlayedRate')).toEqual([])
+  })
+})
+
+describe('métricas oficiais', () => {
+  it('entram no ranking mesmo sem relatório nosso', () => {
+    const teams = [team(1, { played: 0, opr: 40 }), team(2, { played: 0, opr: 55 })]
+    expect(rankBy(teams, 'opr').map((r) => r.team.teamNumber)).toEqual([2, 1])
+  })
+
+  it('ranking oficial: menor posição é melhor', () => {
+    const teams = [team(1, { officialRank: 3 }), team(2, { officialRank: 1 })]
+    expect(rankBy(teams, 'officialRank')[0].team.teamNumber).toBe(2)
+  })
+
+  it('com OPR, a Visão geral troca "Pior partida" pelo OPR e continua com 6 categorias', () => {
+    expect(leaderMetricsFor([team(1)])).not.toContain('opr')
+    const withOpr = leaderMetricsFor([team(1, { opr: 30 })])
+    expect(withOpr[0]).toBe('opr')
+    expect(withOpr).not.toContain('minHits')
+    expect(withOpr).toHaveLength(6)
+  })
+
+  it('líderes oficiais não ganham etiqueta de poucos dados', () => {
+    const leaders = leadersOf([team(1, { played: 0, opr: 40 })], 'opr')
+    expect(leaders[0].lowSample).toBe(false)
   })
 })
 
