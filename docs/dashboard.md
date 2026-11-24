@@ -55,9 +55,30 @@ As projeções **somam as médias** das duas equipes da aliança. É uma estimat
 - **LEAVE+PARK esperado vs. 16:** mostra se a aliança costuma chegar no **SWARM RP** (16 pontos de LEAVE + PARK).
 - **Alertas:** equipe sem partidas registradas, problema em 1 a cada 3 partidas ou mais, defesa em metade das partidas ou mais, quem tira POLLEN/NECTAR da FLOWER e aliança sem ninguém pontuando na FLOWER.
 
+## Dados oficiais da FIRST
+
+Com a [API oficial](ftc-api.md) ligada, a dashboard também mostra ranking oficial, RS e vitórias/derrotas de cada equipe.
+
+### OPR
+
+**OPR** (Offensive Power Rating) estima quantos pontos cada equipe soma à aliança por partida, descontando a força do parceiro. Cada aliança numa partida vira uma equação ("robô A + robô B = pontos da aliança"); com várias partidas, o app acha os valores que melhor encaixam em todas (mínimos quadrados).
+
+- Usa só classificatórias jogadas e os pontos **sem as faltas** recebidas do adversário.
+- No começo do evento, quando duas equipes só jogaram juntas, os pontos são divididos entre elas.
+- OPR mede **pontos**, não o que o robô fez: não vê defesa e mistura o placar inteiro. Ele complementa o scouting, não substitui. É por isso que os acertos no CELL continuam sendo a métrica principal.
+
+### Conferência com a tabela oficial
+
+Na Visão geral, o app compara os relatórios com a tabela oficial (só partidas já jogadas):
+
+- **Cobertura:** quantos robôs que jogaram têm relatório.
+- **Corrigidos automaticamente:** o número anotado nem está inscrito no evento (ex.: 8734 em vez de 8743). É erro de digitação: o relatório passa a contar para a equipe da tabela.
+- **Confira com o scouter:** o número anotado é de outra equipe inscrita. Não dá para saber se errou o número ou a posição, então o app só avisa.
+- **Sem relatório:** robôs que jogaram e ninguém anotou.
+
 ## O que a dashboard **não** calcula, e por quê
 
-- **TIPs por equipe:** o TIP é da aliança (os dois robôs lançam no mesmo CELL) e o manual não diz quantos POLLEN viram um TIP. Inventar esse número daria um ranking falso. A contribuição para os TIPs é medida em **acertos no CELL**.
+- **TIPs por equipe:** o TIP é da aliança (os dois robôs lançam no mesmo CELL) e o manual não diz quantos POLLEN viram um TIP. Inventar esse número daria um ranking falso. A contribuição de cada robô é medida em **acertos no CELL**; os TIPs da aliança aparecem no placar detalhado oficial, na ficha da equipe.
 - **Pontos totais da equipe:** pelo mesmo motivo. Só aparece o que dá para atribuir a um robô (LEAVE, PARK, FLOWER, GARDEN), com esse nome.
 
 ## Cuidados com os dados

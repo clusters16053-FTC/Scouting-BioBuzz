@@ -2,7 +2,10 @@ import { useMemo } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 import Icon from '../../components/Icon.jsx'
 import RequireEvent from '../event/RequireEvent.jsx'
-import { buildEventSummary } from './analytics.js'
+import { checkReports, typoCorrections } from '../official/official-data.js'
+import { useOfficialData } from '../official/official-store.js'
+import { enrichSummary } from '../official/official-summary.js'
+import { buildEventSummary, sanitizeMatchReport } from './analytics.js'
 import TeamSearch from './components/TeamSearch.jsx'
 import { useEventData } from './use-event-data.js'
 import { useWatchlist } from './watchlist-service.js'
@@ -52,12 +55,35 @@ export default function DashboardLayout() {
 function EventDashboard({ eventId }) {
   const data = useEventData(eventId)
   const watchlist = useWatchlist(eventId)
+  // Dados oficiais da FIRST: atualiza sozinho a cada 2 min com a tela aberta.
+  const official = useOfficialData(eventId, { autoRefreshMs: 2 * 60 * 1000 })
   const navigate = useNavigate()
   const pathname = useLocation().pathname.replace(/\/$/, '')
-  const summary = useMemo(
-    () => buildEventSummary(data.matches, data.pits),
-    [data.matches, data.pits],
-  )
+  // official muda de objeto a cada desenho; os cálculos dependem só dos dados dentro dele.
+  const { fetchedAt, teams: officialTeams, rankings, matches: schedule } = official
+
+  // Confere os relatórios com a tabela oficial e corrige só erro de digitação evidente
+  // (número que nem está inscrito no evento). O resto vira aviso na Visão geral.
+  const check = useMemo(() => {
+    const reports = data.matches.map((raw) => sanitizeMatchReport(raw)).filter(Boolean)
+    const eventTeams = new Set(officialTeams.map((t) => t.teamNumber))
+    return checkReports(schedule, reports, eventTeams)
+  }, [data.matches, schedule, officialTeams])
+
+  const summary = useMemo(() => {
+    const corrections = typoCorrections(check)
+    const matches = corrections.size
+      ? data.matches.map((r) =>
+          corrections.has(r.id) ? { ...r, teamNumber: corrections.get(r.id) } : r,
+        )
+      : data.matches
+    return enrichSummary(buildEventSummary(matches, data.pits), {
+      fetchedAt,
+      teams: officialTeams,
+      rankings,
+      matches: schedule,
+    })
+  }, [data.matches, data.pits, check, fetchedAt, officialTeams, rankings, schedule])
 
   return (
     <section className="dashboard">
@@ -130,7 +156,7 @@ function EventDashboard({ eventId }) {
         )}
 
       {data.status === 'ready' && summary.teams.length > 0 && (
-        <Outlet context={{ eventId, summary, watchlist }} />
+        <Outlet context={{ eventId, summary, watchlist, official, check }} />
       )}
     </section>
   )

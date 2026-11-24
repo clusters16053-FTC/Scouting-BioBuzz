@@ -57,9 +57,11 @@ Abra o endereço que aparecer no terminal (normalmente `http://localhost:5173`).
 ```
 scouting-biobuzz/
 ├── .github/              # Templates de issue/PR e CI (GitHub Actions)
+├── api/                  # Funções da Vercel (ponte com a API da FIRST)
 ├── docs/                 # Documentação do projeto
 ├── public/               # Arquivos servidos como estão (ícones)
 ├── scripts/              # Scripts auxiliares (ex.: preparar o emulador)
+├── server/               # Código que roda só no servidor (a ponte, com o token)
 ├── src/
 │   ├── app/              # Casca do app: rotas, layout, navegação
 │   ├── components/       # Peças de formulário reutilizáveis (Counter, Segmented, ChipGroup…)
@@ -70,7 +72,8 @@ scouting-biobuzz/
 │   │   ├── home/
 │   │   ├── match-scouting/
 │   │   ├── pit-scouting/
-│   │   └── dashboard/    # Ranking, ficha da equipe, preparar partida e os cálculos
+│   │   ├── official/     # Dados oficiais da FIRST: busca, cópia no aparelho, OPR, conferência
+│   │   └── dashboard/    # Visão geral, equipes, ficha, comparar, próxima partida e os cálculos
 │   ├── lib/              # Firebase, caminhos do banco, IDs, compressão de imagem
 │   ├── styles/           # CSS global e tokens de design
 │   └── main.jsx          # Ponto de entrada
@@ -93,6 +96,7 @@ scouting-biobuzz/
 - [Firebase](docs/firebase.md) — criar o projeto, segurança e limites grátis
 - [Dashboard](docs/dashboard.md) — o que cada número significa e o que não é calculado
 - [Design](docs/design.md) — por que o tema é claro, tokens de cor e contraste
+- [API oficial da FIRST](docs/ftc-api.md) — ligar a integração, o que ela faz e como protege o token
 - [Jogo BIOBUZZ](docs/jogo-biobuzz.md) — resumo das regras que importam pro scouting
 - [Como contribuir](CONTRIBUTING.md) — branches, commits e pull requests
 

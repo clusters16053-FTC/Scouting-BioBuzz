@@ -1147,3 +1147,111 @@ fieldset {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---------- Dados oficiais da FIRST ---------- */
+.official-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--r-md);
+  font-size: 0.9rem;
+  color: var(--text-2);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.official-status p {
+  flex: 1 1 220px;
+  margin: 0;
+}
+
+.official-status--warn {
+  color: var(--warning);
+}
+
+/* Lista de eventos oficiais ao trocar de evento. */
+.event-options__title {
+  margin: 0 0 var(--space-2);
+  font-size: 0.9rem;
+  font-weight: 650;
+  color: var(--text-2);
+}
+
+.event-options ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.event-options button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0 var(--space-3);
+  width: 100%;
+  min-height: var(--touch);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  font: inherit;
+  text-align: left;
+  color: var(--text);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.event-options strong {
+  grid-row: span 2;
+  align-self: center;
+  font-size: 1.1rem;
+  font-stretch: var(--narrow);
+}
+
+.event-options span {
+  overflow: hidden;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.event-options small {
+  font-size: 0.82rem;
+  color: var(--text-2);
+}
+
+/* Conferência da equipe no formulário de partida. */
+.team-check {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.team-check p {
+  margin: 0;
+}
+
+.team-check--ok {
+  color: var(--good-text);
+}
+
+.team-check--warn {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--r-sm);
+  color: var(--warning);
+  background: color-mix(in srgb, var(--warning) 10%, var(--surface));
+}
+
+.saved__next {
+  margin: var(--space-3) 0 0;
+  color: var(--text-2);
+}

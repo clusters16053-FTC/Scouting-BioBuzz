@@ -1,22 +1,7 @@
 import { Link } from 'react-router'
 import { OWN_TEAM } from '../../../config/team.js'
-import { METRICS, isLowSample } from '../metrics.js'
+import { METRICS, TABLE_COLUMNS, isLowSample } from '../metrics.js'
 import StarButton from './StarButton.jsx'
-
-/** Colunas, na ordem em que aparecem. Nome, formato e direção vêm de METRICS. */
-const COLUMNS = [
-  'avgTotalHits',
-  'accuracy',
-  'avgCycleSeconds',
-  'avgTeleopCycles',
-  'minHits',
-  'avgLeaveParkPoints',
-  'avgFlowerPieces',
-  'avgGarden',
-  'defensePlayedRate',
-  'issueRate',
-  'avgDriverRating',
-]
 
 const PLAYED = { short: 'Partidas', hint: 'Partidas jogadas (sem contar ausências)' }
 
@@ -24,7 +9,7 @@ const PLAYED = { short: 'Partidas', hint: 'Partidas jogadas (sem contar ausênci
  * Tabela de equipes. Recebe as equipes JÁ filtradas e ordenadas pela página;
  * sort ({ key, direction } ou null) só marca a coluna ativa, e onSort(key) avisa o clique.
  */
-export default function TeamTable({ teams, sort, onSort, watchlist }) {
+export default function TeamTable({ teams, sort, onSort, watchlist, columns = TABLE_COLUMNS }) {
   return (
     <div className="table-scroll" role="region" aria-label="Tabela de equipes" tabIndex={0}>
       <table className="team-table">
@@ -33,7 +18,7 @@ export default function TeamTable({ teams, sort, onSort, watchlist }) {
             <th scope="col" className="team-table__team">
               Equipe
             </th>
-            {COLUMNS.map((key) => (
+            {columns.map((key) => (
               <SortHeader
                 key={key}
                 columnKey={key}
@@ -63,7 +48,7 @@ export default function TeamTable({ teams, sort, onSort, watchlist }) {
                   </Link>
                 </div>
               </th>
-              {COLUMNS.map((key) => (
+              {columns.map((key) => (
                 <td key={key} className={sort?.key === key ? 'is-sorted' : undefined}>
                   {METRICS[key].format(team[key])}
                 </td>

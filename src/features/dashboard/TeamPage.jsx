@@ -2,6 +2,7 @@ import { Link, useOutletContext, useParams } from 'react-router'
 import Icon from '../../components/Icon.jsx'
 import { OWN_TEAM } from '../../config/team.js'
 import { INTAKE_OPTIONS, ISSUE_OPTIONS } from '../match-scouting/match-schema.js'
+import { humanizeField, matchesOf } from '../official/official-data.js'
 import {
   DRIVETRAIN_OPTIONS,
   FLOWER_PIECE_OPTIONS,
@@ -25,11 +26,22 @@ const KEY_METRICS = [
   'avgFlowerPieces',
 ]
 
+/** Com resultados oficiais, o OPR entra no lugar dos ciclos (que seguem na tabela e na comparação). */
+const KEY_METRICS_OFFICIAL = [
+  'avgTotalHits',
+  'opr',
+  'accuracy',
+  'avgCycleSeconds',
+  'avgLeaveParkPoints',
+  'avgFlowerPieces',
+]
+
 /** Índice da ficha: pula direto para a seção. */
 const SECTIONS = [
   ['desempenho', 'Desempenho'],
   ['consistencia', 'Consistência'],
   ['comportamento', 'Comportamento'],
+  ['oficial', 'Oficial'],
   ['pit', 'Pit'],
   ['observacoes', 'Observações'],
   ['partidas', 'Partidas'],
@@ -48,7 +60,7 @@ function describeTrend(trend) {
 
 export default function TeamPage() {
   const { teamNumber } = useParams()
-  const { eventId, summary, watchlist } = useOutletContext()
+  const { eventId, summary, watchlist, official } = useOutletContext()
   const team = summary.teams.find((t) => t.teamNumber === Number(teamNumber))
 
   if (!team) {
@@ -70,9 +82,14 @@ export default function TeamPage() {
     avgTeleopCycles: 'Por partida, no TELEOP',
     avgLeaveParkPoints: 'Pontos por partida',
     avgFlowerPieces: 'NECTAR + POLLEN por partida',
+    opr: `AUTO ${formatNumber(team.autoOpr)}. Calculado com os placares oficiais`,
   }
+  const keyMetrics =
+    team.opr === null || team.opr === undefined ? KEY_METRICS : KEY_METRICS_OFFICIAL
+  const officialMatches = matchesOf(official?.matches ?? [], team.teamNumber)
   const sections = SECTIONS.filter(([id]) => {
     if (id === 'observacoes') return team.notes.length > 0
+    if (id === 'oficial') return officialMatches.length > 0
     if (id === 'pit') return true
     return team.played > 0
   })
@@ -89,9 +106,16 @@ export default function TeamPage() {
           <div>
             <p className="team-hero__name">{team.teamName || 'Sem entrevista de pit'}</p>
             <p className="muted">
-              {team.played} {team.played === 1 ? 'partida jogada' : 'partidas jogadas'}
+              {team.played} {team.played === 1 ? 'partida anotada' : 'partidas anotadas'}
               {team.noShows > 0 && `, ${team.noShows} sem aparecer`}
             </p>
+            {team.officialRank && (
+              <p className="team-hero__official">
+                {team.officialRank}º no ranking oficial
+                {team.rankingScore !== null && `, RS ${formatNumber(team.rankingScore)}`}
+                {team.record && `, ${describeRecord(team.record)}`}
+              </p>
+            )}
           </div>
           <div className="team-hero__tags">
             {team.teamNumber === OWN_TEAM.number && <span className="tag">Nossa equipe</span>}
@@ -128,7 +152,7 @@ export default function TeamPage() {
       {team.played > 0 && (
         <>
           <dl id="desempenho" className="stat-row stat-row--3 anchor-target">
-            {KEY_METRICS.map((key, index) => (
+            {keyMetrics.map((key, index) => (
               <RankTile
                 key={key}
                 label={METRICS[key].label}
@@ -233,6 +257,14 @@ export default function TeamPage() {
         </>
       )}
 
+      {officialMatches.length > 0 && (
+        <OfficialResults
+          entries={officialMatches}
+          scores={official.scores}
+          names={new Map(summary.teams.map((t) => [t.teamNumber, t.teamName]))}
+        />
+      )}
+
       <PitPanel eventId={eventId} pit={team.pit} />
 
       {team.notes.length > 0 && (
@@ -261,6 +293,121 @@ export default function TeamPage() {
         </section>
       )}
     </article>
+  )
+}
+
+/** { wins: 4, losses: 1, ties: 0 } → "4 vitórias e 1 derrota" */
+function describeRecord({ wins, losses, ties }) {
+  const part = (n, one, many) => `${n} ${n === 1 ? one : many}`
+  const parts = [part(wins, 'vitória', 'vitórias'), part(losses, 'derrota', 'derrotas')]
+  if (ties) parts.push(part(ties, 'empate', 'empates'))
+  return `${parts.slice(0, -1).join(', ')} e ${parts.at(-1)}`
+}
+
+/** Valor do placar detalhado: sim/não em vez de true/false. */
+function showValue(value) {
+  if (value === true) return 'Sim'
+  if (value === false) return 'Não'
+  return value ?? '—'
+}
+
+const OUTCOME = { win: 'V', loss: 'D', tie: 'E' }
+const OUTCOME_LABEL = { win: 'Vitória', loss: 'Derrota', tie: 'Empate' }
+
+function matchLabel(match) {
+  return match.level === 'qual'
+    ? `Q${match.number}`
+    : match.description || `Playoff ${match.number}`
+}
+
+function shortTime(value) {
+  if (!value) return ''
+  const date = new Date(value)
+  return Number.isNaN(date.getTime())
+    ? ''
+    : date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+}
+
+/**
+ * Partidas da equipe na tabela oficial: próxima partida em destaque e, nas jogadas,
+ * o placar da FIRST. O placar detalhado (campos do jogo, como TIPs) abre por partida.
+ */
+function OfficialResults({ entries, scores, names }) {
+  const next = entries.find((e) => !e.match.played)
+  const played = entries.filter((e) => e.match.played)
+  const label = (n) => `${n}${names.get(n) ? ` ${names.get(n)}` : ''}`
+
+  return (
+    <section id="oficial" className="panel anchor-target">
+      <header className="panel__header">
+        <h2>Resultados oficiais</h2>
+        <p className="muted">Tabela e placares da FIRST.</p>
+      </header>
+
+      {next && (
+        <p className="next-match">
+          <strong>
+            Próxima: {matchLabel(next.match)}
+            {shortTime(next.match.startTime) && ` às ${shortTime(next.match.startTime)}`}
+          </strong>
+          , aliança {next.alliance === 'red' ? 'vermelha' : 'azul'}
+          {next.partners.length > 0 && ` com ${next.partners.map(label).join(' e ')}`}, contra{' '}
+          {next.opponents.map(label).join(' e ')}.
+        </p>
+      )}
+
+      {played.length > 0 && (
+        <ul className="official-results">
+          {played.map(({ match, alliance, partners, opponents, outcome }) => {
+            const other = alliance === 'red' ? 'blue' : 'red'
+            const detail = scores?.[match.key]
+            return (
+              <li key={match.key} className={`official-results__item is-${outcome}`}>
+                <div className="official-results__row">
+                  <span className="official-results__match">{matchLabel(match)}</span>
+                  <span className={`pill pill--${alliance}`}>
+                    {alliance === 'red' ? 'Vermelha' : 'Azul'}
+                  </span>
+                  <span className="official-results__teams">
+                    com {partners.join(' e ') || '—'} contra {opponents.join(' e ')}
+                  </span>
+                  <span className="official-results__score">
+                    <span className="visually-hidden">{OUTCOME_LABEL[outcome]}, </span>
+                    <span aria-hidden="true" className="official-results__outcome">
+                      {OUTCOME[outcome]}
+                    </span>
+                    {match.score[alliance].total} × {match.score[other].total}
+                  </span>
+                </div>
+                {detail?.[alliance] && (
+                  <details className="score-detail">
+                    <summary>Placar detalhado</summary>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th scope="col">Campo</th>
+                          <th scope="col">Aliança da equipe</th>
+                          <th scope="col">Adversária</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.keys(detail[alliance]).map((field) => (
+                          <tr key={field}>
+                            <th scope="row">{humanizeField(field)}</th>
+                            <td>{showValue(detail[alliance][field])}</td>
+                            <td>{showValue(detail[other]?.[field])}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </details>
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </section>
   )
 }
 

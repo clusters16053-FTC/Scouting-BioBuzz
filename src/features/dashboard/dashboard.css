@@ -1651,3 +1651,163 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+/* ---------- Dados oficiais na dashboard ---------- */
+.team-hero__official {
+  margin: 2px 0 0;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.next-match {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-left: 3px solid var(--crimson);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  background: var(--surface-2);
+}
+
+.official-results {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.official-results__item {
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.official-results__row {
+  display: grid;
+  grid-template-columns: 3.2em auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.official-results__match {
+  font-weight: 750;
+  font-stretch: var(--narrow);
+}
+
+.official-results__teams {
+  overflow: hidden;
+  font-size: 0.88rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--text-2);
+}
+
+.official-results__score {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 1.1rem;
+  font-weight: 800;
+  font-stretch: var(--narrow);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Letra do resultado num quadradinho: V verde, D carmim, E cinza (a letra já diz, a cor reforça). */
+.official-results__outcome {
+  display: inline-grid;
+  place-items: center;
+  width: 1.6em;
+  height: 1.6em;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: var(--text);
+  background: var(--surface-3);
+}
+
+.is-win .official-results__outcome {
+  color: var(--good-ink);
+  background: var(--good);
+}
+
+.is-loss .official-results__outcome {
+  color: #fff;
+  background: var(--crimson);
+}
+
+.score-detail {
+  margin-top: var(--space-2);
+}
+
+.score-detail summary {
+  font-size: 0.88rem;
+  font-weight: 650;
+  color: var(--select);
+  cursor: pointer;
+}
+
+.score-detail table {
+  width: 100%;
+  margin-top: var(--space-2);
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.score-detail th,
+.score-detail td {
+  padding: 4px var(--space-2);
+  border-bottom: 1px solid var(--line-soft);
+  text-align: right;
+}
+
+.score-detail th[scope='row'],
+.score-detail thead th:first-child {
+  font-weight: 500;
+  text-align: left;
+  color: var(--text-2);
+}
+
+/* Conferência com a tabela oficial (Visão geral). */
+.data-check__coverage {
+  display: block;
+  flex: 0 0 140px;
+  align-self: center;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-3);
+}
+
+.data-check__coverage span {
+  display: block;
+  height: 100%;
+  background: var(--select);
+}
+
+.data-check__group h3 {
+  margin: 0 0 var(--space-1);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.data-check__group ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.data-check__group li + li {
+  margin-top: 2px;
+}
+
+.data-check__missing {
+  margin: 0;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+}
+
+/* Duas classes para vencer o "white-space: nowrap" do .button: o texto pode quebrar linha. */
+.button.prep-own-next {
+  align-self: stretch;
+  min-height: var(--touch);
+  padding: var(--space-2) var(--space-4);
+  white-space: normal;
+}

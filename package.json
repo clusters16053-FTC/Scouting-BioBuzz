@@ -1,7 +1,7 @@
 {
   "name": "scouting-biobuzz",
   "private": true,
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "Sistema de scouting da equipe Clusters FTC #16053 para a temporada BIOBUZZ (2026-2027)",
   "type": "module",
   "engines": {

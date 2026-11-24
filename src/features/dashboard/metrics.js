@@ -13,12 +13,38 @@ export const RELIABLE_MATCHES = 3
 
 const formatSeconds = (value) =>
   value === null || value === undefined ? '—' : `${formatNumber(value)} s`
+const formatOrdinal = (value) => (value === null || value === undefined ? '—' : `${value}º`)
 const formatInteger = (value) => (value === null || value === undefined ? '—' : String(value))
 
 /**
  * better: 'higher' | 'lower' | null (null = não existe "melhor", ex.: jogar defesa)
+ * official: vem dos resultados oficiais da FIRST (vale mesmo sem relatório nosso).
  */
 export const METRICS = Object.freeze({
+  officialRank: {
+    label: 'Ranking oficial',
+    short: 'Rank',
+    hint: 'Posição no ranking oficial do evento (FIRST)',
+    format: formatOrdinal,
+    better: 'lower',
+    official: true,
+  },
+  opr: {
+    label: 'OPR',
+    short: 'OPR',
+    hint: 'Pontos que a equipe soma à aliança por partida, sem faltas (resultados oficiais)',
+    format: formatNumber,
+    better: 'higher',
+    official: true,
+  },
+  autoOpr: {
+    label: 'OPR no AUTO',
+    short: 'OPR AUTO',
+    hint: 'Pontos de AUTO que a equipe soma à aliança (resultados oficiais)',
+    format: formatNumber,
+    better: 'higher',
+    official: true,
+  },
   avgTotalHits: {
     label: 'Acertos no CELL',
     short: 'CELL',
@@ -98,6 +124,21 @@ export const METRICS = Object.freeze({
   },
 })
 
+/** Colunas da tabela de equipes, na ordem em que aparecem. Nome, formato e direção vêm de METRICS. */
+export const TABLE_COLUMNS = [
+  'avgTotalHits',
+  'accuracy',
+  'avgCycleSeconds',
+  'avgTeleopCycles',
+  'minHits',
+  'avgLeaveParkPoints',
+  'avgFlowerPieces',
+  'avgGarden',
+  'defensePlayedRate',
+  'issueRate',
+  'avgDriverRating',
+]
+
 /** Categorias que aparecem em "Líderes" e no card da nossa equipe. */
 export const LEADER_METRICS = [
   'avgTotalHits',
@@ -110,6 +151,21 @@ export const LEADER_METRICS = [
 
 export function isLowSample(team) {
   return team.played < RELIABLE_MATCHES
+}
+
+/**
+ * Categorias da Visão geral. Com resultados oficiais, o OPR entra na frente e "Pior partida"
+ * sai (continua na ficha e na comparação): ficam sempre 6, que fecham a grade de 3 colunas.
+ */
+export function leaderMetricsFor(teams) {
+  return hasMetric(teams, 'opr')
+    ? ['opr', ...LEADER_METRICS.filter((key) => key !== 'minHits')]
+    : LEADER_METRICS
+}
+
+/** Alguma equipe tem esse número? (as métricas oficiais só existem com a API ligada) */
+export function hasMetric(teams, key) {
+  return teams.some((t) => t[key] !== null && t[key] !== undefined)
 }
 
 function hasValue(value) {
@@ -129,7 +185,10 @@ function compareBest(key) {
  */
 export function rankBy(teams, key) {
   if (!METRICS[key]?.better) return []
-  const eligible = teams.filter((t) => t.played > 0 && hasValue(t[key])).sort(compareBest(key))
+  const official = METRICS[key].official
+  const eligible = teams
+    .filter((t) => (official || t.played > 0) && hasValue(t[key]))
+    .sort(compareBest(key))
   let rank = 0
   return eligible.map((team, index) => {
     if (index === 0 || team[key] !== eligible[index - 1][key]) rank = index + 1
@@ -157,7 +216,11 @@ export function positionOf(teams, key, teamNumber) {
 export function leadersOf(teams, key, n = 3) {
   return rankBy(teams, key)
     .slice(0, n)
-    .map((entry) => ({ ...entry, lowSample: isLowSample(entry.team) }))
+    .map((entry) => ({
+      ...entry,
+      // "Poucos dados" fala dos NOSSOS relatórios; não vale para números oficiais.
+      lowSample: !METRICS[key].official && isLowSample(entry.team),
+    }))
 }
 
 /**
