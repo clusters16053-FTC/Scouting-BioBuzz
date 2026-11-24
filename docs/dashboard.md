@@ -52,16 +52,16 @@ As projeções **somam as médias** das duas equipes da aliança. É uma estimat
 
 ## Cores dos gráficos
 
-As cores foram validadas com script para daltonismo e contraste no fundo escuro (separação mínima ΔE 8):
+As cores foram validadas com script para daltonismo e contraste no fundo branco dos cards (separação mínima ΔE 8):
 
 | Uso                   | Cor       |
 | --------------------- | --------- |
-| AUTO                  | `#8280E6` |
-| TELEOP                | `#E5517B` |
-| Nossa equipe (ênfase) | `#E5517B` |
-| Demais equipes        | `#5C5B8F` |
+| AUTO                  | `#5552D4` |
+| TELEOP                | `#D63564` |
+| Nossa equipe (ênfase) | `#D63564` |
+| Demais equipes        | `#A9A7D6` |
 
-O cinza das demais equipes tem contraste abaixo de 3:1 de propósito (é o "apagado" da ênfase). Por isso toda barra tem o valor escrito na ponta e existe uma tabela com os mesmos números.
+O lilás das demais equipes tem contraste abaixo de 3:1 de propósito (é o "apagado" da ênfase). Por isso toda barra tem o valor escrito na ponta e existe uma tabela com os mesmos números.
 
 ## Custo no plano grátis
 
