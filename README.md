@@ -92,6 +92,7 @@ scouting-biobuzz/
 - [Modelo de dados](docs/modelo-de-dados.md) — campos coletados e estrutura no Firestore
 - [Firebase](docs/firebase.md) — criar o projeto, segurança e limites grátis
 - [Dashboard](docs/dashboard.md) — o que cada número significa e o que não é calculado
+- [Design](docs/design.md) — por que o tema é claro, tokens de cor e contraste
 - [Jogo BIOBUZZ](docs/jogo-biobuzz.md) — resumo das regras que importam pro scouting
 - [Como contribuir](CONTRIBUTING.md) — branches, commits e pull requests
 

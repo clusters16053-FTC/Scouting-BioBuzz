@@ -10,32 +10,47 @@
 
 /* ---------- Tokens ---------- */
 :root {
-  /* Fundos: índigo profundo, derivado de #53519C */
-  --ink-950: #16152e;
-  --ink-900: #1c1b39;
-  --ink-800: #232245;
-  --ink-700: #2d2c55;
-  --line: #3a3966;
-  --line-soft: #2a2950;
+  /*
+   * Tema claro: lê bem sob a luz forte da arena e com o brilho do celular no meio.
+   * Os nomes dizem o papel da cor (fundo, superfície, texto), não o tom.
+   */
+  --bg: #f1f0f8; /* fundo da página: lavanda bem clara, puxada do índigo do logo */
+  --surface: #ffffff; /* cards, campos e menu */
+  --surface-2: #e8e7f4; /* preenchimentos suaves: pílulas, ícones, blocos internos */
+  --surface-3: #dedcef; /* trilhos de barra, etiquetas, estado pressionado */
+  --line: #cbc9e3;
+  --line-soft: #e2e0f0;
 
-  --text: #f3f2fa;
-  --text-2: #b4b2d3;
-  --text-3: #8786b0;
+  /* Texto: índigo quase preto. Contraste com o branco: 18 / 10 / 6,1 */
+  --text: #15142c;
+  --text-2: #3f3d6a;
+  --text-3: #5f5d8a;
+
+  /* Seleção: índigo escuro com texto branco (botões de opção, abas, foco) */
+  --select: #2f2d7a;
+  --on-select: #ffffff;
 
   /* Marca (logo) */
-  --crimson: #e02f5d;
-  --crimson-hi: #f04a74;
+  --crimson: #d42a57; /* um pouco mais escuro que o do logo, para texto branco por cima */
+  --crimson-press: #b61f47;
   --magenta: #a6487c;
   --indigo: #53519c;
-  --lavender: #dcdaff; /* seleção: clara, para não competir com o carmim */
+  --brand-ink: #1c1b39; /* índigo escuro do logo: fundo do selo no topo */
   --brand-gradient: linear-gradient(135deg, #e02f5d 0%, #a6487c 52%, #53519c 100%);
 
   /* Cores do jogo — separadas da marca de propósito */
-  --alliance-red: #ff5a47;
-  --alliance-blue: #3d9bff;
+  --alliance-red: #d63a26;
+  --alliance-blue: #1f74d6;
   --good: #3dd68c;
-  --good-ink: #04281a;
-  --danger: #ff6b6b;
+  --good-ink: #04281a; /* texto em cima do verde */
+  --good-text: #167a4c; /* verde escuro para texto no fundo claro */
+  --danger: #c4314b;
+  --danger-ink: #7a1426;
+  --warning: #8a5a00;
+
+  /* Profundidade: borda fina + sombra curta separam o card do fundo */
+  --shadow-card: 0 0 0 1px var(--line-soft), 0 1px 3px rgb(21 20 44 / 7%);
+  --shadow-pop: 0 8px 24px rgb(21 20 44 / 16%);
 
   /* Forma e espaço (grid de 4/8 px) */
   --r-sm: 8px;
@@ -54,12 +69,12 @@
   --font: 'Saira Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --narrow: 75%; /* largura condensada para números e títulos */
 
-  color-scheme: dark;
+  color-scheme: light;
   font-family: var(--font);
   font-size: 16px;
   line-height: 1.5;
   color: var(--text);
-  background: var(--ink-950);
+  background: var(--bg);
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
 }
@@ -105,7 +120,7 @@ code {
   padding: 1px 6px;
   border-radius: 6px;
   font-size: 0.9em;
-  background: var(--ink-700);
+  background: var(--surface-3);
 }
 
 fieldset {
@@ -130,7 +145,7 @@ fieldset {
 }
 
 :focus-visible {
-  outline: 2px solid var(--lavender);
+  outline: 2px solid var(--select);
   outline-offset: 2px;
 }
 
@@ -151,7 +166,7 @@ fieldset {
   gap: var(--space-3);
   padding: var(--space-2) var(--space-4);
   padding-top: calc(var(--space-2) + env(safe-area-inset-top));
-  background: color-mix(in srgb, var(--ink-950) 92%, transparent);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--line-soft);
 }
@@ -163,6 +178,13 @@ fieldset {
   font-size: 1.15rem;
   font-weight: 650;
   font-stretch: 87.5%;
+}
+
+.brand img {
+  /* O logo tem partes brancas: o selo índigo mantém ele inteiro no fundo claro. */
+  padding: 2px;
+  border-radius: 50%;
+  background: var(--brand-ink);
 }
 
 .event-chip {
@@ -194,7 +216,7 @@ fieldset {
   grid-template-columns: repeat(4, 1fr);
   height: calc(var(--nav-height) + env(safe-area-inset-bottom));
   padding-bottom: env(safe-area-inset-bottom);
-  background: var(--ink-900);
+  background: var(--surface);
   border-top: 1px solid var(--line-soft);
 }
 
@@ -206,8 +228,8 @@ fieldset {
   justify-content: center;
   gap: 2px;
   font-size: 0.78rem;
-  font-weight: 500;
-  color: var(--text-3);
+  font-weight: 600;
+  color: var(--text-2);
 }
 
 /* O NavLink adiciona "active" na rota atual. */
@@ -216,7 +238,7 @@ fieldset {
 }
 
 .bottom-nav__link.active .icon {
-  color: var(--crimson-hi);
+  color: var(--crimson);
 }
 
 .bottom-nav__link.active::before {
@@ -250,7 +272,7 @@ fieldset {
 }
 
 .button:active {
-  background: var(--crimson-hi);
+  background: var(--crimson-press);
 }
 
 .button:disabled {
@@ -269,7 +291,7 @@ fieldset {
 }
 
 .button--ghost:active {
-  background: var(--ink-700);
+  background: var(--surface-3);
 }
 
 .button--danger {
@@ -304,7 +326,7 @@ fieldset {
   margin-top: var(--space-2);
   font-size: 0.88rem;
   font-weight: 400;
-  color: var(--text-3);
+  color: var(--text-2);
 }
 
 .field-label .field-hint {
@@ -321,7 +343,7 @@ fieldset {
   font: inherit;
   font-size: 16px;
   color: var(--text);
-  background: var(--ink-900);
+  background: var(--surface);
 }
 
 .field textarea {
@@ -337,7 +359,7 @@ fieldset {
 
 .field input:focus,
 .field textarea:focus {
-  border-color: var(--lavender);
+  border-color: var(--select);
   outline: none;
 }
 
@@ -345,7 +367,7 @@ fieldset {
   padding: var(--space-3) var(--space-4);
   border-left: 3px solid var(--danger);
   border-radius: 0 var(--r-sm) var(--r-sm) 0;
-  color: #ffd9d9;
+  color: var(--danger-ink);
   background: color-mix(in srgb, var(--danger) 14%, transparent);
 }
 
@@ -398,15 +420,15 @@ fieldset {
   font-weight: 600;
   white-space: nowrap;
   color: var(--text);
-  background: var(--ink-900);
+  background: var(--surface);
   cursor: pointer;
   touch-action: manipulation;
 }
 
 .segmented__option.is-selected {
-  border-color: var(--lavender);
-  color: var(--ink-950);
-  background: var(--lavender);
+  border-color: var(--select);
+  color: var(--on-select);
+  background: var(--select);
 }
 
 .segmented__option.tone-good.is-selected {
@@ -457,9 +479,9 @@ fieldset {
 }
 
 .chip.is-selected {
-  border-color: var(--lavender);
-  color: var(--ink-950);
-  background: var(--lavender);
+  border-color: var(--select);
+  color: var(--on-select);
+  background: var(--select);
 }
 
 /* ---------- Contador ---------- */
@@ -492,7 +514,7 @@ fieldset {
   font-weight: 600;
   line-height: 1;
   color: var(--text);
-  background: var(--ink-900);
+  background: var(--surface);
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -502,9 +524,9 @@ fieldset {
 }
 
 .counter__button--plus {
-  border-color: var(--lavender);
-  color: var(--ink-950);
-  background: var(--lavender);
+  border-color: var(--select);
+  color: var(--on-select);
+  background: var(--select);
 }
 
 .counter__value {
@@ -543,7 +565,7 @@ fieldset {
   font-stretch: var(--narrow);
   font-variant-numeric: tabular-nums;
   color: var(--text-2);
-  background: var(--ink-800);
+  background: var(--surface-2);
 }
 
 .pill--red {
@@ -608,7 +630,7 @@ fieldset {
   margin: 0 calc(-1 * var(--space-4));
   padding: var(--space-3) var(--space-4);
   border-top: 1px solid var(--line-soft);
-  background: var(--ink-950);
+  background: var(--bg);
 }
 
 /* ---------- Revisão ---------- */
@@ -658,6 +680,7 @@ fieldset {
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   overflow: hidden;
+  background: var(--surface);
 }
 
 .stat-cells div {
@@ -670,14 +693,15 @@ fieldset {
 }
 
 .stat-cells dt {
-  font-size: 0.75rem;
-  color: var(--text-3);
+  font-size: 0.82rem;
+  color: var(--text-2);
+  font-weight: 600;
 }
 
 .stat-cells dd {
   margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1.9rem;
+  font-weight: 800;
   font-stretch: var(--narrow);
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
@@ -786,7 +810,8 @@ fieldset {
   padding: var(--space-4);
   border: 1px solid var(--magenta);
   border-radius: var(--r-lg);
-  background: var(--ink-900);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 
 .cycle-pending__title {
@@ -810,7 +835,7 @@ fieldset {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-2);
-  background: var(--ink-700);
+  background: var(--surface-3);
 }
 
 /* Um botão por resultado possível (0 até o que foi coletado). */
@@ -836,7 +861,7 @@ fieldset {
 
 .hit-button:first-child {
   color: var(--text);
-  background: var(--ink-700);
+  background: var(--surface-3);
 }
 
 .cycle-summary {
@@ -846,6 +871,7 @@ fieldset {
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   overflow: hidden;
+  background: var(--surface);
 }
 
 .cycle-summary div {
@@ -858,14 +884,15 @@ fieldset {
 }
 
 .cycle-summary dt {
-  font-size: 0.75rem;
-  color: var(--text-3);
+  font-size: 0.82rem;
+  color: var(--text-2);
+  font-weight: 600;
 }
 
 .cycle-summary dd {
   margin: 0;
-  font-size: 1.6rem;
-  font-weight: 700;
+  font-size: 1.9rem;
+  font-weight: 800;
   font-stretch: var(--narrow);
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
@@ -889,7 +916,7 @@ fieldset {
 }
 
 .cycle-row__number {
-  color: var(--text-3);
+  color: var(--text-2);
 }
 
 .cycle-row__dots {
@@ -913,7 +940,7 @@ fieldset {
   max-height: 320px;
   object-fit: contain;
   border-radius: var(--r-md);
-  background: var(--ink-900);
+  background: var(--surface);
 }
 
 .photo-preview figcaption {
@@ -947,9 +974,10 @@ fieldset {
   padding: var(--space-4) var(--space-4) var(--space-4) var(--space-5);
   border-radius: var(--r-lg);
   background:
-    linear-gradient(var(--ink-800), var(--ink-800)) padding-box,
+    linear-gradient(var(--surface-2), var(--surface-2)) padding-box,
     var(--brand-gradient) border-box;
   border: 1px solid transparent;
+  box-shadow: var(--shadow-card);
 }
 
 .event-picker--editing {
@@ -993,8 +1021,8 @@ fieldset {
   width: 52px;
   height: 52px;
   border-radius: var(--r-md);
-  color: var(--crimson-hi);
-  background: var(--ink-800);
+  color: var(--crimson);
+  background: var(--surface-2);
 }
 
 .shortcut__text {
@@ -1013,7 +1041,7 @@ fieldset {
 }
 
 .shortcut:active .shortcut__icon {
-  background: var(--ink-700);
+  background: var(--surface-3);
 }
 
 /* ---------- Telas inteiras (carregando, entrar, sem config) ---------- */
@@ -1054,7 +1082,7 @@ fieldset {
   padding: var(--space-5);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  background: var(--ink-800);
+  background: var(--surface-2);
 }
 
 .card .muted + .muted {
