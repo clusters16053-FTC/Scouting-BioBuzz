@@ -70,7 +70,7 @@ Um quadro para desenhar a estratégia em cima do campo, no dedo (celular ou tabl
 - **Baixar imagem:** gera uma imagem com as 3 fases lado a lado. No celular abre o menu de compartilhar, para mandar direto no grupo.
 - **Onde fica salvo:** só neste aparelho, um quadro por confronto (as 4 equipes), guardando os 20 mais recentes. Para mostrar aos outros, use a imagem.
 
-O campo é um **esquema próprio**, desenhado a partir das medidas do manual (seção 9): 144 × 144 in, grade de 6 × 6 TILES, HIVE no centro e aliança vermelha à esquerda vista da plateia. As posições ficam em [`field-layout.js`](../src/features/strategy/field-layout.js). Enquanto `LAYOUT_CONFIRMED` for `false`, o quadro avisa que FLOWERS, GARDENS e LOADING ZONES ainda são provisórios.
+O campo é um **esquema próprio** (não é a arte da FIRST), visto de cima com a **aliança vermelha embaixo**. As posições de HIVES, FLOWERS, GARDENS e LOADING ZONES foram medidas numa vista de cima do campo e conferidas com as medidas do manual (seção 9): 144 × 144 in, grade de 6 × 6 TILES, GARDEN de ~23 × 2 in e LOADING ZONE de ~23 × 11 in. Elas ficam em [`field-layout.js`](../src/features/strategy/field-layout.js). Na HIVE, o CELL branco é o virado para cima (o que aceita lançamento no começo da partida).
 
 ## Dados oficiais da FIRST
 

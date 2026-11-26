@@ -1,5 +1,5 @@
 import { FIELD_SIZE } from './board-model.js'
-import { ALLIANCE_COLORS, FIELD, ROBOT_SIZE, TILE } from './field-layout.js'
+import { ALLIANCE_COLORS, FIELD, ROBOT_SIZE, TILE, VIEW } from './field-layout.js'
 
 /**
  * Um quadro desenhado: campo + traços + robôs, em SVG.
@@ -22,13 +22,10 @@ export default function FieldScene({
   label,
   ...svgProps
 }) {
-  const pad = 2
-  const box = FIELD_SIZE + pad * 2
-
   return (
     <svg
       ref={svgRef}
-      viewBox={`${-pad} ${-pad} ${box} ${box}`}
+      viewBox={`${VIEW.x} ${VIEW.y} ${VIEW.width} ${VIEW.height}`}
       xmlns="http://www.w3.org/2000/svg"
       role="img"
       aria-label={label}
@@ -56,6 +53,36 @@ export default function FieldScene({
   )
 }
 
+const FONT = 'Saira, system-ui, sans-serif'
+const POLLEN = '#e8b500'
+
+/** Texto que continua de pé quando o campo gira. */
+function Label({ x, y, rotated, children, ...props }) {
+  return (
+    <text
+      x={x}
+      y={y}
+      textAnchor="middle"
+      fontFamily={FONT}
+      fontWeight={800}
+      transform={rotated ? `rotate(180 ${x} ${y})` : undefined}
+      dominantBaseline="middle"
+      {...props}
+    >
+      {children}
+    </text>
+  )
+}
+
+/** CELL em forma de seta (como no campo): ponta para a direita ou esquerda. */
+function cellPolygon({ x, width }, y, height, points) {
+  const tip = 4
+  const mid = y + height / 2
+  return points === 'right'
+    ? `${x},${y} ${x + width - tip},${y} ${x + width},${mid} ${x + width - tip},${y + height} ${x},${y + height}`
+    : `${x + tip},${y} ${x + width},${y} ${x + width},${y + height} ${x + tip},${y + height} ${x},${mid}`
+}
+
 function Field({ rotated }) {
   const tiles = []
   for (let i = 1; i < FIELD_SIZE / TILE; i += 1) {
@@ -64,8 +91,7 @@ function Field({ rotated }) {
       <line key={`h${i}`} x1={0} y1={i * TILE} x2={FIELD_SIZE} y2={i * TILE} />,
     )
   }
-  const { hive } = FIELD
-  const half = hive.width / 2
+  const frame = FIELD.hiveFrame
 
   return (
     <g>
@@ -74,76 +100,100 @@ function Field({ rotated }) {
         {tiles}
       </g>
 
+      {/* GARDENS: faixa na parede com os 4 POLLEN do começo */}
       {FIELD.gardens.map((g) => (
-        <rect
-          key={`garden-${g.alliance}`}
-          x={g.x}
-          y={g.y}
-          width={g.width}
-          height={g.height}
-          fill={ALLIANCE_COLORS[g.alliance]}
-          fillOpacity={0.12}
-          stroke={ALLIANCE_COLORS[g.alliance]}
-          strokeWidth={1}
-        />
-      ))}
-      {FIELD.loadingZones.map((z) => (
-        <rect
-          key={`load-${z.alliance}`}
-          x={z.x}
-          y={z.y}
-          width={z.width}
-          height={z.height}
-          fill="none"
-          stroke={ALLIANCE_COLORS[z.alliance]}
-          strokeWidth={1.5}
-        />
+        <g key={`garden-${g.alliance}`}>
+          <rect
+            x={g.x}
+            y={g.y}
+            width={g.width}
+            height={g.height}
+            fill={ALLIANCE_COLORS[g.alliance]}
+          />
+          {[0.15, 0.38, 0.62, 0.85].map((t) => (
+            <circle
+              key={t}
+              cx={g.x + g.width / 2}
+              cy={g.y + g.height * t}
+              r={1.4}
+              fill={POLLEN}
+              stroke="#ffffff"
+              strokeWidth={0.4}
+            />
+          ))}
+        </g>
       ))}
 
-      {/* HIVE: estrutura no centro, metade de cada aliança */}
-      <rect
-        x={hive.x}
-        y={hive.y}
-        width={hive.width}
-        height={hive.height}
-        rx={3}
-        fill="#ffffff"
-        stroke="#3f3d6a"
-        strokeWidth={1}
-      />
-      {['red', 'blue'].map((alliance, i) => (
-        <rect
-          key={alliance}
-          x={hive.x + 4 + i * half}
-          y={hive.y + 8}
-          width={half - 8}
-          height={hive.height - 16}
-          rx={3}
-          fill={ALLIANCE_COLORS[alliance]}
-          fillOpacity={0.18}
-          stroke={ALLIANCE_COLORS[alliance]}
-          strokeWidth={1}
-        />
-      ))}
-      <text
-        x={FIELD_SIZE / 2}
-        y={hive.y + hive.height / 2 + 2}
-        textAnchor="middle"
-        fontSize={6}
-        fontWeight={700}
-        fill="#3f3d6a"
-        fontFamily="Saira, system-ui, sans-serif"
-        transform={
-          rotated ? `rotate(180 ${FIELD_SIZE / 2} ${hive.y + hive.height / 2})` : undefined
-        }
-      >
-        HIVE
-      </text>
+      {/* LOADING ZONES: "U" aberto para a parede */}
+      {FIELD.loadingZones.map((z) => {
+        const wallY = z.wall === 'top' ? 0 : FIELD_SIZE
+        const innerY = z.wall === 'top' ? z.height : FIELD_SIZE - z.height
+        return (
+          <path
+            key={`load-${z.alliance}`}
+            d={`M${z.x} ${wallY} V${innerY} H${z.x + z.width} V${wallY}`}
+            fill="none"
+            stroke={ALLIANCE_COLORS[z.alliance]}
+            strokeWidth={1.6}
+          />
+        )
+      })}
 
+      {/* Estrutura das HIVES: linhas de cima e de baixo */}
+      <g stroke="#9a98b8" strokeWidth={1.2}>
+        <line x1={frame.x} y1={frame.y} x2={frame.x + frame.width} y2={frame.y} />
+        <line
+          x1={frame.x}
+          y1={frame.y + frame.height}
+          x2={frame.x + frame.width}
+          y2={frame.y + frame.height}
+        />
+      </g>
+
+      {/* HIVES: CELL para cima (branco, aceita lançamento) e para baixo (cheio) */}
+      {FIELD.hives.map((hive) => {
+        const color = ALLIANCE_COLORS[hive.alliance]
+        const [left, right] = hive.cells
+        const mid = hive.y + hive.height / 2
+        return (
+          <g key={hive.alliance}>
+            <line
+              x1={left.x + left.width}
+              y1={mid}
+              x2={right.x}
+              y2={mid}
+              stroke={color}
+              strokeWidth={1.6}
+            />
+            {hive.cells.map((cell) => (
+              <g key={cell.x}>
+                <polygon
+                  points={cellPolygon(cell, hive.y, hive.height, hive.points)}
+                  fill={cell.up ? '#ffffff' : color}
+                  fillOpacity={cell.up ? 1 : 0.25}
+                  stroke={color}
+                  strokeWidth={cell.up ? 1.4 : 0.9}
+                />
+                <Label
+                  x={cell.x + cell.width / 2}
+                  y={mid}
+                  rotated={rotated}
+                  fontSize={3.6}
+                  fill={cell.up ? color : '#3f3d6a'}
+                >
+                  {cell.up ? 'CIMA' : 'BAIXO'}
+                </Label>
+              </g>
+            ))}
+          </g>
+        )
+      })}
+
+      {/* FLOWERS nas paredes */}
       {FIELD.flowers.map((f, i) => (
         <g key={`flower-${i}`}>
-          <circle cx={f.x} cy={f.y} r={5} fill="#ffffff" stroke="#167a4c" strokeWidth={1.2} />
-          <circle cx={f.x} cy={f.y} r={1.8} fill="#e8b500" />
+          <circle cx={f.x} cy={f.y} r={3.4} fill={POLLEN} stroke="#a37800" strokeWidth={0.6} />
+          <circle cx={f.x} cy={f.y} r={1.3} fill="#3f3d6a" />
         </g>
       ))}
 
@@ -157,6 +207,20 @@ function Field({ rotated }) {
         stroke="#15142c"
         strokeWidth={1.5}
       />
+
+      {/* Lado de cada aliança, fora do campo */}
+      <Label x={FIELD_SIZE / 2} y={-4.5} rotated={rotated} fontSize={5} fill={ALLIANCE_COLORS.blue}>
+        ALIANÇA AZUL
+      </Label>
+      <Label
+        x={FIELD_SIZE / 2}
+        y={FIELD_SIZE + 4.5}
+        rotated={rotated}
+        fontSize={5}
+        fill={ALLIANCE_COLORS.red}
+      >
+        ALIANÇA VERMELHA
+      </Label>
     </g>
   )
 }

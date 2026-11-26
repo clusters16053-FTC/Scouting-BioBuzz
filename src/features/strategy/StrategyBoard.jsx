@@ -24,7 +24,7 @@ import {
 } from './board-model.js'
 import { exportBoardImage } from './export-image.js'
 import FieldScene from './FieldScene.jsx'
-import { ALLIANCE_COLORS, LAYOUT_CONFIRMED, allianceOf, startPositions } from './field-layout.js'
+import { ALLIANCE_COLORS, allianceOf, startPositions } from './field-layout.js'
 
 const COLORS = [
   { value: '#15142c', label: 'Preto' },
@@ -322,8 +322,6 @@ export default function StrategyBoard({ eventId, slots, title }) {
       <p className="muted board-hint">
         Arraste os robôs com o dedo. Cada fase tem o próprio desenho; robô não movido continua onde
         estava na fase anterior. Fica salvo só neste aparelho.
-        {!LAYOUT_CONFIRMED &&
-          ' Campo em esquema provisório: as posições das FLOWERS, GARDENS e LOADING ZONES ainda serão conferidas com o manual.'}
       </p>
     </section>
   )
