@@ -1255,3 +1255,27 @@ fieldset {
   margin: var(--space-3) 0 0;
   color: var(--text-2);
 }
+
+/* Tela cheia de um componente (ex.: quadro da arena): a página atrás não rola. */
+body.no-scroll {
+  overflow: hidden;
+}
+
+/* Botão só com ícone (ferramentas do quadro). */
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  color: var(--text);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.icon-button:disabled {
+  color: var(--text-3);
+  opacity: 0.45;
+  cursor: default;
+}

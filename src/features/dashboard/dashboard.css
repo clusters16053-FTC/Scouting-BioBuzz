@@ -1811,3 +1811,244 @@
   padding: var(--space-2) var(--space-4);
   white-space: normal;
 }
+
+/* ---------- Simular partida ---------- */
+.score-estimate {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border-radius: var(--r-lg);
+  text-align: center;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.score-estimate__label {
+  font-size: 0.9rem;
+  font-weight: 650;
+  color: var(--text-2);
+}
+
+.score-estimate__value {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  font-size: 2.6rem;
+  font-weight: 800;
+  font-stretch: var(--narrow);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.score-estimate__value .is-red {
+  color: var(--alliance-red);
+}
+
+.score-estimate__value .is-blue {
+  color: var(--alliance-blue);
+}
+
+.score-estimate__verdict {
+  font-weight: 600;
+}
+
+.simulate-compare summary {
+  cursor: pointer;
+  list-style-position: inside;
+}
+
+.simulate-compare summary h2 {
+  display: inline;
+  font-size: 1.15rem;
+}
+
+.simulate-compare[open] summary {
+  margin-bottom: var(--space-3);
+}
+
+.compare-table th.is-red .compare-table__team strong {
+  color: var(--alliance-red);
+}
+
+.compare-table th.is-blue .compare-table__team strong {
+  color: var(--alliance-blue);
+}
+
+/* ---------- Quadro da arena ---------- */
+.strategy-board {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.strategy-board__top,
+.board-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.board-phases,
+.board-tools {
+  display: flex;
+  gap: var(--space-1);
+  padding: 3px;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.board-phases button,
+.board-tools button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  border: none;
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-2);
+  background: transparent;
+  cursor: pointer;
+}
+
+.board-phases button.is-selected,
+.board-tools button.is-selected {
+  color: var(--on-select);
+  background: var(--select);
+}
+
+.board-actions,
+.board-history {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.board-colors {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* Bolinhas de cor: anel índigo + espaço branco na selecionada (não depende só da cor). */
+.board-colors button {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--surface);
+  border-radius: 50%;
+  background: var(--swatch);
+  box-shadow: 0 0 0 1px var(--line);
+  cursor: pointer;
+}
+
+.board-colors button.is-selected {
+  box-shadow: 0 0 0 3px var(--select);
+}
+
+.board-clear-confirm {
+  background: var(--danger);
+}
+
+.strategy-board__canvas {
+  display: flex;
+  justify-content: center;
+}
+
+.board-svg {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: var(--r-sm);
+  /* Desenhar com o dedo não rola nem dá zoom na página. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  cursor: crosshair;
+}
+
+.board-svg.tool-eraser {
+  cursor: cell;
+}
+
+.board-hint {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+/* Tela cheia: o campo ocupa o máximo possível, ferramentas em volta. */
+.strategy-board.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  padding: calc(var(--space-3) + env(safe-area-inset-top)) var(--space-3)
+    calc(var(--space-3) + env(safe-area-inset-bottom));
+  border-radius: 0;
+  background: var(--bg);
+}
+
+.strategy-board.is-fullscreen .strategy-board__canvas {
+  flex: 1;
+  min-height: 0;
+}
+
+.strategy-board.is-fullscreen .board-svg {
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+}
+
+.strategy-board.is-fullscreen .board-hint {
+  display: none;
+}
+
+/* Tablet ou celular deitado em tela cheia: ferramentas na lateral, campo maior. */
+@media (orientation: landscape) and (max-height: 820px) {
+  .strategy-board.is-fullscreen {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(200px, 280px);
+    grid-template-rows: auto minmax(0, 1fr);
+    column-gap: var(--space-4);
+  }
+
+  .strategy-board.is-fullscreen .strategy-board__top {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .strategy-board.is-fullscreen .strategy-board__canvas {
+    grid-column: 1;
+    grid-row: 1 / 3;
+  }
+
+  .strategy-board.is-fullscreen .board-toolbar {
+    grid-column: 2;
+    grid-row: 2;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: var(--space-3);
+  }
+
+  .strategy-board.is-fullscreen .board-tools {
+    flex-direction: column;
+  }
+
+  .strategy-board.is-fullscreen .strategy-board__top {
+    align-items: flex-start;
+  }
+}

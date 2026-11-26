@@ -34,16 +34,16 @@ const TABS = [
     match: (path) => path.startsWith('/dashboard/comparar'),
   },
   {
-    to: '/dashboard/partida',
-    label: 'Próxima partida',
-    short: 'Próxima',
-    match: (path) => path.startsWith('/dashboard/partida'),
+    to: '/dashboard/simular',
+    label: 'Simular partida',
+    short: 'Simular',
+    match: (path) => path.startsWith('/dashboard/simular'),
   },
 ]
 
 /**
  * Casca da dashboard: busca os dados do evento UMA vez e entrega para as telas
- * (visão geral, equipes, ficha, comparar, próxima partida) via contexto do <Outlet>.
+ * (visão geral, equipes, ficha, comparar, simular partida) via contexto do <Outlet>.
  * Também guarda a busca do topo e as favoritas compartilhadas.
  */
 export default function DashboardLayout() {

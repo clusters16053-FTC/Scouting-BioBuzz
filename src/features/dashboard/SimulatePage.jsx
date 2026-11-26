@@ -3,7 +3,11 @@ import Icon from '../../components/Icon.jsx'
 import { OWN_TEAM } from '../../config/team.js'
 import { createLocalStore } from '../../lib/local-store.js'
 import { nextMatchOf } from '../official/official-data.js'
+import { matchupKey } from '../strategy/board-model.js'
+import { allianceOf } from '../strategy/field-layout.js'
+import StrategyBoard from '../strategy/StrategyBoard.jsx'
 import { formatNumber, formatRate, projectAlliance } from './analytics.js'
+import CompareTable from './components/CompareTable.jsx'
 
 /** As 4 equipes escolhidas ficam salvas no aparelho entre uma visita e outra. */
 const prepStore = createLocalStore('scouting:match-prep', { red: [null, null], blue: [null, null] })
@@ -13,8 +17,12 @@ const ALLIANCES = [
   { key: 'blue', label: 'Aliança azul' },
 ]
 
-export default function MatchPrepPage() {
-  const { summary, watchlist, official } = useOutletContext()
+/**
+ * Simular partida: escolhe as 4 equipes (ou a nossa próxima partida oficial), compara as
+ * alianças e rabisca a estratégia no quadro da arena.
+ */
+export default function SimulatePage() {
+  const { eventId, summary, watchlist, official } = useOutletContext()
   const slots = prepStore.useValue()
   const byNumber = new Map(summary.teams.map((t) => [t.teamNumber, t]))
   const options = [...summary.teams].sort((a, b) => a.teamNumber - b.teamNumber)
@@ -39,6 +47,12 @@ export default function MatchPrepPage() {
   )
   const bothFilled = ALLIANCES.every(({ key }) => projections[key].teams.length > 0)
   const hitDiff = projections.red.expectedHits - projections.blue.expectedHits
+  const score = estimatedScore(slots, byNumber)
+  const chosenTeams = [...slots.red, ...slots.blue]
+    .filter(Boolean)
+    .map((n) => byNumber.get(n))
+    .filter(Boolean)
+  const boardTitle = simulationTitle(slots, ownNext)
 
   function choose(alliance, index, value) {
     prepStore.set((current) => {
@@ -51,8 +65,8 @@ export default function MatchPrepPage() {
   return (
     <div className="dashboard__body">
       <p className="muted prep-intro">
-        Escolha os robôs da próxima partida. As projeções somam as médias de cada equipe: são uma
-        estimativa, não uma garantia.
+        Escolha os 4 robôs, compare as alianças e desenhe a estratégia no quadro. As projeções somam
+        as médias de cada equipe: são uma estimativa, não uma garantia.
       </p>
 
       {ownNext && (
@@ -65,6 +79,24 @@ export default function MatchPrepPage() {
               minute: '2-digit',
             })}`}
         </button>
+      )}
+
+      {score && (
+        <div className="score-estimate" aria-label="Placar estimado pelo OPR">
+          <span className="score-estimate__label">Placar estimado (OPR)</span>
+          <span className="score-estimate__value">
+            <span className="is-red">{Math.round(score.red)}</span>
+            <span aria-hidden="true">×</span>
+            <span className="is-blue">{Math.round(score.blue)}</span>
+          </span>
+          <span className="score-estimate__verdict">
+            {Math.abs(score.red - score.blue) < 5
+              ? 'Partida parelha: qualquer uma pode vencer.'
+              : `Aliança ${score.red > score.blue ? 'vermelha' : 'azul'} na frente por ${Math.round(
+                  Math.abs(score.red - score.blue),
+                )} pontos, se as médias se repetirem.`}
+          </span>
+        </div>
       )}
 
       {bothFilled && (
@@ -92,6 +124,18 @@ export default function MatchPrepPage() {
         ))}
       </div>
 
+      {chosenTeams.length >= 2 && (
+        <details className="panel simulate-compare">
+          <summary>
+            <h2>As {chosenTeams.length} equipes lado a lado</h2>
+          </summary>
+          <CompareTable teams={chosenTeams} watchlist={watchlist} alliances={allianceOf(slots)} />
+        </details>
+      )}
+
+      {/* key: cada confronto tem o próprio quadro (trocar uma equipe abre outro). */}
+      <StrategyBoard key={matchupKey(slots)} eventId={eventId} slots={slots} title={boardTitle} />
+
       <div className="prep-actions">
         {chosen.length >= 2 && (
           <Link
@@ -112,6 +156,31 @@ export default function MatchPrepPage() {
       </div>
     </div>
   )
+}
+
+/**
+ * Placar estimado: soma do OPR (pontos sem faltas) das equipes de cada aliança.
+ * Só aparece com as 4 equipes escolhidas e todas com OPR (dados oficiais ligados).
+ */
+function estimatedScore(slots, byNumber) {
+  const sum = (list) => {
+    const teams = list.map((n) => (n ? byNumber.get(n) : null))
+    if (teams.some((t) => t?.opr === null || t?.opr === undefined)) return null
+    return teams.reduce((total, t) => total + t.opr, 0)
+  }
+  const red = sum(slots.red)
+  const blue = sum(slots.blue)
+  return red === null || blue === null ? null : { red, blue }
+}
+
+/** Título do quadro e da imagem: "Q34: 16053 + 8743 × 18002 + 11234". */
+function simulationTitle(slots, ownNext) {
+  const side = (list) => list.filter(Boolean).join(' + ') || '?'
+  const teams = `${side(slots.red)} × ${side(slots.blue)}`
+  const isOwnNext =
+    ownNext &&
+    [...slots.red, ...slots.blue].every((n) => ownNext.match.teams.some((t) => t.teamNumber === n))
+  return isOwnNext && ownNext.match.level === 'qual' ? `Q${ownNext.match.number}: ${teams}` : teams
 }
 
 /** Texto de uma opção da lista: "8743 Abelhas Mecânicas (nós)". */
