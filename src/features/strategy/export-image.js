@@ -4,8 +4,11 @@ import { createRoot } from 'react-dom/client'
 import { OWN_TEAM } from '../../config/team.js'
 import { PHASES, robotsFor } from './board-model.js'
 import FieldScene from './FieldScene.jsx'
+import { VIEW } from './field-layout.js'
 
 const PANEL = 640
+/** Altura de cada painel, na mesma proporção do campo com os nomes das alianças. */
+const PANEL_H = Math.round((PANEL * VIEW.height) / VIEW.width)
 const GAP = 28
 const MARGIN = 32
 const HEADER = 96
@@ -22,7 +25,7 @@ export async function exportBoardImage({ board, starts, alliances, rotated, titl
   const svgs = renderPhases({ board, starts, alliances, rotated })
 
   const width = MARGIN * 2 + PANEL * PHASES.length + GAP * (PHASES.length - 1)
-  const height = MARGIN * 2 + HEADER + PANEL
+  const height = MARGIN * 2 + HEADER + PANEL_H
   const canvas = document.createElement('canvas')
   canvas.width = width
   canvas.height = height
@@ -41,7 +44,7 @@ export async function exportBoardImage({ board, starts, alliances, rotated, titl
     ctx.font = `700 24px ${FONT}`
     ctx.fillText(phase.label, x, y - 16)
     const image = await svgToImage(svgs[index])
-    ctx.drawImage(image, x, y, PANEL, PANEL)
+    ctx.drawImage(image, x, y, PANEL, PANEL_H)
   }
 
   const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'))
@@ -80,7 +83,7 @@ function renderPhases({ board, starts, alliances, rotated }) {
             ownTeam: OWN_TEAM.number,
             rotated,
             width: PANEL,
-            height: PANEL,
+            height: PANEL_H,
           }),
         )
       })
