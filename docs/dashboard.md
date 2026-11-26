@@ -12,7 +12,7 @@ Os cálculos ficam em [`analytics.js`](../src/features/dashboard/analytics.js) (
 | **Equipes**         | Tabela de todas as equipes com atalhos de um toque (filtro + ordenação) e estrela de favorita           |
 | **Ficha da equipe** | Tudo sobre um robô: cada número com a posição no evento, consistência, comportamento, pit e observações |
 | **Comparar**        | De 2 a 4 equipes lado a lado, com o melhor valor de cada linha destacado                                |
-| **Próxima partida** | Escolher os 4 robôs da próxima partida e comparar as alianças (favoritas aparecem primeiro na lista)    |
+| **Simular partida** | Escolher os 4 robôs, comparar as alianças e rabiscar a estratégia no quadro da arena                    |
 
 ### Atalhos
 
@@ -47,13 +47,30 @@ As médias usam **só partidas jogadas**. Partida em que o robô não apareceu c
 | Taxas (%)           | Em quantas partidas jogadas aconteceu: LEAVE, PARK, jogou/sofreu defesa, teve problema   |
 | Piloto              | Média das notas de 1 a 5 (partidas sem nota ficam de fora)                               |
 
-### Preparar partida
+### Simular partida: comparação
 
 As projeções **somam as médias** das duas equipes da aliança. É uma estimativa, não uma previsão garantida.
 
 - **Acertos esperados:** soma dos acertos por partida.
 - **LEAVE+PARK esperado vs. 16:** mostra se a aliança costuma chegar no **SWARM RP** (16 pontos de LEAVE + PARK).
 - **Alertas:** equipe sem partidas registradas, problema em 1 a cada 3 partidas ou mais, defesa em metade das partidas ou mais, quem tira POLLEN/NECTAR da FLOWER e aliança sem ninguém pontuando na FLOWER.
+
+- **Placar estimado (OPR):** soma do OPR das duas equipes de cada aliança. Só aparece com a API oficial ligada e as 4 equipes com OPR.
+- **As 4 equipes lado a lado:** a mesma tabela da aba Comparar, com o número de cada equipe na cor da aliança.
+
+### Simular partida: quadro da arena
+
+Um quadro para desenhar a estratégia em cima do campo, no dedo (celular ou tablet) ou no mouse.
+
+- **Robôs:** as 4 equipes escolhidas aparecem como peças com o número, na cor da aliança (a nossa com borda escura). Tocar num robô e arrastar move ele.
+- **Ferramentas:** caneta, seta (caminho do robô, com ponta) e borracha (passa o dedo em cima do risco). Quatro cores, desfazer, refazer e limpar a fase (pede confirmação).
+- **Fases:** AUTO, TELEOP e FINAL têm desenhos próprios. Robô que não foi movido numa fase continua onde estava na anterior.
+- **Girar o campo:** mostra o campo do lado da outra aliança.
+- **Tela cheia:** o campo ocupa a tela toda. Com o tablet ou o celular deitado, as ferramentas vão para a lateral.
+- **Baixar imagem:** gera uma imagem com as 3 fases lado a lado. No celular abre o menu de compartilhar, para mandar direto no grupo.
+- **Onde fica salvo:** só neste aparelho, um quadro por confronto (as 4 equipes), guardando os 20 mais recentes. Para mostrar aos outros, use a imagem.
+
+O campo é um **esquema próprio**, desenhado a partir das medidas do manual (seção 9): 144 × 144 in, grade de 6 × 6 TILES, HIVE no centro e aliança vermelha à esquerda vista da plateia. As posições ficam em [`field-layout.js`](../src/features/strategy/field-layout.js). Enquanto `LAYOUT_CONFIRMED` for `false`, o quadro avisa que FLOWERS, GARDENS e LOADING ZONES ainda são provisórios.
 
 ## Dados oficiais da FIRST
 

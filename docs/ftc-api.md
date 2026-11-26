@@ -63,7 +63,7 @@ celular ──► /api/ftc (função na Vercel, guarda o token) ──► ftc-ap
 - **OPR** calculado com os placares oficiais (ver [dashboard.md](dashboard.md#opr)).
 - **Resultados oficiais** na ficha, com a próxima partida e o placar detalhado de cada partida.
 - **Conferência** na Visão geral (ver [dashboard.md](dashboard.md#conferência-com-a-tabela-oficial)).
-- **Próxima partida:** um botão preenche os 4 robôs da próxima partida da Clusters.
+- **Simular partida:** um botão preenche os 4 robôs da próxima partida da Clusters, e o placar estimado usa o OPR.
 
 ## Limites
 

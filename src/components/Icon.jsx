@@ -65,6 +65,25 @@ const PATHS = {
   ),
   // Favorita: estrela (preenchida via CSS quando marcada)
   star: <path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" />,
+  // Quadro: caneta
+  pen: <path d="M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10L4 20zM14 7l3 3" />,
+  // Quadro: seta (caminho do robô)
+  arrow: <path d="M5 19 19 5M10 5h9v9" />,
+  // Quadro: borracha
+  eraser: (
+    <>
+      <path d="m7 20-3.3-3.3a1.5 1.5 0 0 1 0-2.1L13.6 4.7a1.5 1.5 0 0 1 2.1 0l4.6 4.6a1.5 1.5 0 0 1 0 2.1L11 20z" />
+      <path d="M7 20h13M9 9.5l6 6" />
+    </>
+  ),
+  // Tela cheia: cantos para fora
+  expand: <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />,
+  // Refazer: seta circular para a direita (espelho do "undo")
+  redo: <path d="M15 14l5-5-5-5M20 9H9.5a5.5 5.5 0 0 0 0 11H13" />,
+  // Limpar: lixeira
+  trash: <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />,
+  // Baixar: seta para baixo numa bandeja
+  download: <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />,
   // Comparar: duas colunas lado a lado
   compare: (
     <>

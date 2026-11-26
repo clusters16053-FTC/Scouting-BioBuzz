@@ -73,7 +73,8 @@ scouting-biobuzz/
 │   │   ├── match-scouting/
 │   │   ├── pit-scouting/
 │   │   ├── official/     # Dados oficiais da FIRST: busca, cópia no aparelho, OPR, conferência
-│   │   └── dashboard/    # Visão geral, equipes, ficha, comparar, próxima partida e os cálculos
+│   │   ├── strategy/     # Quadro da arena: campo, desenho, fases e imagem para compartilhar
+│   │   └── dashboard/    # Visão geral, equipes, ficha, comparar, simular partida e os cálculos
 │   ├── lib/              # Firebase, caminhos do banco, IDs, compressão de imagem
 │   ├── styles/           # CSS global e tokens de design
 │   └── main.jsx          # Ponto de entrada
